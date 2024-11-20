@@ -1,0 +1,1175 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Bounty API Documentation",
+    "version": "1.0.0",
+    "description": "API documentation for the Bounty application",
+    "contact": {
+      "name": "VS",
+      "email": "vishal@33-sol.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Development server"
+    },
+    {
+      "url": "https://bounty.33solutions.dev/",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your JWT token in the format **Bearer &lt;token>**"
+      }
+    },
+    "schemas": {
+      "Campaign": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "60f7c0b5d4d3c81234567890"
+          },
+          "user": {
+            "type": "string",
+            "example": "60f7c0b5d4d3c81234567890"
+          },
+          "company": {
+            "$ref": "#/components/schemas/Company"
+          },
+          "name": {
+            "type": "string",
+            "example": "Festive Campaign"
+          },
+          "description": {
+            "type": "string",
+            "example": "Campaign for the festive season with QR code rewards."
+          },
+          "totalAmount": {
+            "type": "number",
+            "example": 1000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "festive",
+              "holiday"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "example": "Pending"
+          },
+          "messageTemplate": {
+            "type": "string",
+            "example": "Welcome to our campaign!"
+          },
+          "zipUrl": {
+            "type": "string",
+            "example": "http://example.com/path/to/zipfile.zip"
+          },
+          "payoutConfig": {
+            "type": "object",
+            "description": "Payout configuration settings"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Company": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "60f7c0b5d4d3c81234567890"
+          },
+          "name": {
+            "type": "string",
+            "example": "ABC Corp"
+          },
+          "user": {
+            "type": "string",
+            "example": "60f7c0b5d4d3c81234567890"
+          },
+          "plan": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "Elite Pro"
+              },
+              "qrCodeLimit": {
+                "type": "integer",
+                "example": 1000
+              },
+              "qrCodesGenerated": {
+                "type": "integer",
+                "example": 100
+              }
+            }
+          },
+          "whatsappNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/campaigns/create": {
+      "post": {
+        "summary": "Create a new campaign",
+        "tags": [
+          "Campaigns"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "companyId",
+                  "name",
+                  "numberOfCodes",
+                  "messageTemplate"
+                ],
+                "properties": {
+                  "companyId": {
+                    "type": "string",
+                    "example": "60f7c0b5d4d3c81234567890"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Festive Campaign"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Campaign for the festive season with QR code rewards."
+                  },
+                  "totalAmount": {
+                    "type": "number",
+                    "example": 1000
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "festive",
+                      "holiday"
+                    ]
+                  },
+                  "triggerType": {
+                    "type": "string",
+                    "enum": [
+                      "QR"
+                    ],
+                    "example": "QR"
+                  },
+                  "numberOfCodes": {
+                    "type": "integer",
+                    "example": 100
+                  },
+                  "messageTemplate": {
+                    "type": "string",
+                    "example": "Welcome to our campaign!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Campaign created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Campaign created successfully"
+                    },
+                    "campaign": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/campaigns": {
+      "get": {
+        "summary": "Get all campaigns for the authenticated user",
+        "tags": [
+          "Campaigns"
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of campaigns",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "campaigns": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Campaign"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/campaigns/{campaignId}/insights": {
+      "get": {
+        "summary": "Get insights for a specific campaign",
+        "tags": [
+          "Campaigns"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaignId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The campaign ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campaign insights retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "campaign": {
+                      "$ref": "#/components/schemas/Campaign"
+                    },
+                    "insights": {
+                      "type": "object",
+                      "properties": {
+                        "totalCashbackGiven": {
+                          "type": "number",
+                          "example": 5000
+                        },
+                        "totalUsers": {
+                          "type": "integer",
+                          "example": 100
+                        },
+                        "averageCashbackPerUser": {
+                          "type": "number",
+                          "example": 50
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campaign not found or access denied"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/campaigns/{campaignId}/publish": {
+      "post": {
+        "summary": "Publish a campaign",
+        "tags": [
+          "Campaigns"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaignId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The campaign ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campaign published successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Campaign published successfully"
+                    },
+                    "campaign": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Campaign is already active"
+          },
+          "404": {
+            "description": "Campaign not found or access denied"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/campaigns/{campaignId}/draft": {
+      "post": {
+        "summary": "Save a campaign as draft",
+        "tags": [
+          "Campaigns"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaignId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The campaign ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campaign saved as draft",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Campaign saved as draft"
+                    },
+                    "campaign": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campaign not found or access denied"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/campaigns/{campaignId}/payoutConfig": {
+      "put": {
+        "summary": "Update payout configuration for a campaign",
+        "tags": [
+          "Campaigns"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaignId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The campaign ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "payoutConfig"
+                ],
+                "properties": {
+                  "payoutConfig": {
+                    "type": "object",
+                    "description": "The payout configuration settings"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payout configuration updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Payout configuration updated successfully"
+                    },
+                    "campaign": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campaign not found or access denied"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/campaigns/{campaignId}/summary": {
+      "get": {
+        "summary": "Get campaign summary",
+        "tags": [
+          "Campaigns"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaignId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The campaign ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campaign summary retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "summary": {
+                      "type": "string",
+                      "example": "Your campaign \"Festive Campaign\" reached 100 users and disbursed a total of Rs.5000 in cashback. The average cashback per user was Rs.50.00. Consider increasing engagement by offering higher rewards to first-time users."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campaign not found or access denied"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/companies": {
+      "post": {
+        "summary": "Create a new company",
+        "tags": [
+          "Company"
+        ],
+        "description": "Allows the creation of a company in the system.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "contactName": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "phoneNumber": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "website": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Company created successfully"
+          },
+          "400": {
+            "description": "Error in company creation data"
+          }
+        }
+      }
+    },
+    "/api/external/validateQR": {
+      "post": {
+        "summary": "Validate QR code and disburse funds",
+        "tags": [
+          "External"
+        ],
+        "description": "Validates a QR code and disburses funds if valid.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phoneNumber": {
+                    "type": "string",
+                    "description": "User's phone number"
+                  },
+                  "qrDataText": {
+                    "type": "string",
+                    "description": "Text from the QR code"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Funds disbursed successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/external/registerCustomer": {
+      "post": {
+        "summary": "Register a new customer",
+        "tags": [
+          "External"
+        ],
+        "description": "Registers a new customer with the provided details.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "full_name": {
+                    "type": "string",
+                    "description": "Full name of the customer.",
+                    "example": "John Doe"
+                  },
+                  "phone_number": {
+                    "type": "string",
+                    "description": "Phone number of the customer.",
+                    "example": "+1234567890"
+                  },
+                  "payment_details": {
+                    "type": "object",
+                    "description": "Payment details of the customer.",
+                    "properties": {
+                      "upi_ids": {
+                        "type": "array",
+                        "description": "List of UPI IDs associated with the customer.",
+                        "items": {
+                          "type": "string",
+                          "example": "john@upi"
+                        }
+                      },
+                      "bank_details": {
+                        "type": "array",
+                        "description": "List of bank details associated with the customer.",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "account_number": {
+                              "type": "string",
+                              "description": "Bank account number.",
+                              "example": "123456789012"
+                            },
+                            "ifsc": {
+                              "type": "string",
+                              "description": "IFSC code of the bank branch.",
+                              "example": "IFSC0001XYZ"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "company": {
+                    "type": "string",
+                    "description": "Reference to the Company object ID.",
+                    "example": "60d5ec49f1d2c916c8f0e8b5"
+                  },
+                  "last_campaign_details": {
+                    "type": "object",
+                    "description": "Details of the last campaign the customer was involved in.",
+                    "properties": {
+                      "campaign_id": {
+                        "type": "string",
+                        "description": "Reference to the Campaign object ID.",
+                        "example": "60d5ec49f1d2c916c8f0e8b6"
+                      },
+                      "details_user_shared": {
+                        "type": "object",
+                        "description": "Arbitrary details shared by the user.",
+                        "additionalProperties": true
+                      },
+                      "money_they_received": {
+                        "type": "number",
+                        "description": "Amount of money the customer received.",
+                        "example": 1500.75
+                      }
+                    }
+                  },
+                  "docs": {
+                    "type": "array",
+                    "description": "List of documents associated with the customer.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "doc_type": {
+                          "type": "string",
+                          "description": "Type of the document.",
+                          "example": "passport"
+                        },
+                        "doc_url": {
+                          "type": "string",
+                          "description": "URL where the document is stored.",
+                          "format": "uri",
+                          "example": "https://example.com/docs/passport.pdf"
+                        }
+                      }
+                    }
+                  },
+                  "social_ids": {
+                    "type": "array",
+                    "description": "List of social media IDs associated with the customer.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "platform": {
+                          "type": "string",
+                          "description": "Social media platform name.",
+                          "example": "facebook"
+                        },
+                        "id": {
+                          "type": "string",
+                          "description": "ID on the respective social media platform.",
+                          "example": "fb123456789"
+                        }
+                      }
+                    }
+                  },
+                  "custom_fields": {
+                    "type": "object",
+                    "description": "Dynamic custom fields specific to each brand.",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "phone_number"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "description": "Unique identifier for the customer.",
+                      "example": "60d5ec49f1d2c916c8f0e8b7"
+                    },
+                    "full_name": {
+                      "type": "string",
+                      "example": "John Doe"
+                    },
+                    "phone_number": {
+                      "type": "string",
+                      "example": "+1234567890"
+                    },
+                    "payment_details": {
+                      "type": "object",
+                      "properties": {
+                        "upi_ids": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "john@upi"
+                          ]
+                        },
+                        "bank_details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "account_number": {
+                                "type": "string",
+                                "example": "123456789012"
+                              },
+                              "ifsc": {
+                                "type": "string",
+                                "example": "IFSC0001XYZ"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "company": {
+                      "type": "string",
+                      "example": "60d5ec49f1d2c916c8f0e8b5"
+                    },
+                    "last_campaign_details": {
+                      "type": "object",
+                      "properties": {
+                        "campaign_id": {
+                          "type": "string",
+                          "example": "60d5ec49f1d2c916c8f0e8b6"
+                        },
+                        "details_user_shared": {
+                          "type": "object",
+                          "example": {
+                            "feedback": "Great service!"
+                          }
+                        },
+                        "money_they_received": {
+                          "type": "number",
+                          "example": 1500.75
+                        }
+                      }
+                    },
+                    "docs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "doc_type": {
+                            "type": "string",
+                            "example": "passport"
+                          },
+                          "doc_url": {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "https://example.com/docs/passport.pdf"
+                          }
+                        }
+                      }
+                    },
+                    "social_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "platform": {
+                            "type": "string",
+                            "example": "facebook"
+                          },
+                          "id": {
+                            "type": "string",
+                            "example": "fb123456789"
+                          }
+                        }
+                      }
+                    },
+                    "custom_fields": {
+                      "type": "object",
+                      "example": {
+                        "preferred_language": "English"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-04-23T18:25:43.511Z"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-04-23T18:25:43.511Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Phone number is required."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Phone number already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Phone number already exists."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "An unexpected error occurred."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "summary": "Authenticate user via Google",
+        "description": "Authenticates a user using their Google ID token and returns a JWT for session management.",
+        "tags": [
+          "GOOGLE SSO"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Google ID token obtained from the client-side after Google Sign-In.",
+                    "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."
+                  }
+                },
+                "required": [
+                  "idToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful. Returns JWT and user information.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JSON Web Token (JWT) for authenticated sessions.",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Unique identifier for the user.",
+                          "example": "60d5ec49f1d2c916c8f0e8b7"
+                        },
+                        "full_name": {
+                          "type": "string",
+                          "description": "Full name of the user.",
+                          "example": "John Doe"
+                        },
+                        "email": {
+                          "type": "string",
+                          "description": "Email address of the user.",
+                          "example": "john.doe@example.com"
+                        },
+                        "avatar": {
+                          "type": "string",
+                          "description": "URL to the user's avatar image.",
+                          "example": "https://example.com/avatar/johndoe.jpg"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Missing or invalid ID token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid or missing ID token."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. Failed to authenticate the ID token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid ID token."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. An unexpected error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "An unexpected error occurred."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "auth/signup": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "JohnDoe"
+                  },
+                  "mobileNumber": {
+                    "type": "string",
+                    "example": "918779780352"
+                  },
+                  "typeOfUser": {
+                    "type": "string",
+                    "enum": [
+                      "brand-admin",
+                      "customer"
+                    ],
+                    "example": "brand-admin"
+                  },
+                  "upiId": {
+                    "type": "string",
+                    "example": "john@upi"
+                  },
+                  "companyId": {
+                    "type": "string",
+                    "example": "60f7c0b5d4d3c81234567890"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "User login",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "918779780352"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

@@ -1,0 +1,8 @@
+name,number,imageURL,other_custom_fields
+John Doe,9123456780,https://example.com/images/johndoe.png,{"age":30,"gender":"male"}
+Jane Smith,9234567891,https://example.com/images/janesmith.png,{"age":25,"gender":"female"}
+Alice Johnson,9345678912,https://example.com/images/alicejohnson.png,{"age":28,"gender":"female"}
+Bob Lee,9456789123,https://example.com/images/boblee.png,{"age":35,"gender":"male"}
+Charlie Brown,9567891234,https://example.com/images/charliebrown.png,{"age":22,"gender":"male"}
+
+

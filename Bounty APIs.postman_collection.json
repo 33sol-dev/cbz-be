@@ -1,0 +1,2644 @@
+{
+	"info": {
+		"_postman_id": "691d8c10-f1d5-4c28-b80d-2719dd835e10",
+		"name": "Bounty APIs",
+		"description": "\n    ## API Flow\n\n    The following outlines the main flow of the API:\n\n    1. **Create User (Brand-Admin):** Register a new user with the type `brand-admin`.\n    2. **Login:** Authenticate the user and receive a JWT token.\n    3. **Company Create:** Create a company associated with the brand-admin.\n    4. **Campaign Create:** Create a campaign under the company, generating QR codes.\n    5. **Validate QR:** Validate a QR code scanned by a customer, disbursing funds via Cashfree.\n    6. **Register User (Customer):** Register a new user with the type `customer`.\n\n    Each step corresponds to specific API endpoints documented below.\n    ",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39125609",
+		"_collection_link": "https://tech-team-6745.postman.co/workspace/33sol-tech~7a6b376e-7429-477a-b4d3-db0f1fe2141d/collection/39125609-691d8c10-f1d5-4c28-b80d-2719dd835e10?action=share&source=collection_link&creator=39125609"
+	},
+	"item": [
+		{
+			"name": "api",
+			"item": [
+				{
+					"name": "campaigns",
+					"item": [
+						{
+							"name": "create",
+							"item": [
+								{
+									"name": "EXCEL-CAMPAIGN-CREATE",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "multipart/form-data"
+											},
+											{
+												"key": "Authorization",
+												"value": "Bearer {{auth_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "companyId",
+													"value": "6727ae142206a606f94bf7f3",
+													"type": "text"
+												},
+												{
+													"key": "name",
+													"value": "Holiday Giveaway Test 1",
+													"type": "text"
+												},
+												{
+													"key": "description",
+													"value": "Giveaway campaign for holiday season",
+													"type": "text"
+												},
+												{
+													"key": "totalAmount",
+													"value": "50000",
+													"type": "text"
+												},
+												{
+													"key": "tags",
+													"value": "[\"loyalty\", \"gift\"]",
+													"type": "text"
+												},
+												{
+													"key": "qrStyle",
+													"value": "simple",
+													"type": "text"
+												},
+												{
+													"key": "triggerType",
+													"value": "QR",
+													"type": "text"
+												},
+												{
+													"key": "numberOfCodes",
+													"value": "100",
+													"type": "text"
+												},
+												{
+													"key": "messageTemplate",
+													"value": "Welcome to our Holiday Giveaway!",
+													"type": "text"
+												},
+												{
+													"key": "customFieldConfig",
+													"value": "[{\"fieldName\":\"size\",\"required\":true},{\"fieldName\":\"color\",\"required\":false}]",
+													"type": "text"
+												},
+												{
+													"key": "reward_type",
+													"value": "gift",
+													"type": "text"
+												},
+												{
+													"key": "file",
+													"type": "file",
+													"src": "/Users/vishalsingh/Desktop/33/cbz-backend/cbz-be/sample_csv_bounty_data_upload"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{bounty_dev_url}}/api/campaigns/create",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"api",
+												"campaigns",
+												"create"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Campaign created successfully",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Created",
+											"code": 201,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Unauthorized",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Unauthorized",
+											"code": 401,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								},
+								{
+									"name": "QR-CAMPAIGN-CREATE",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Bearer {{auth_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"companyId\": \"6727ae142206a606f94bf7f3\",\n  \"name\": \"Trial for 5k Customers\",\n  \"description\": \"this is just to try out how would bounties work with direct customers`\",\n  \"totalAmount\": 50000,\n  \"qrStyle\": \"simple\",\n  \"tags\": [\n    \"festive\",\n    \"holiday\",\n    \"demo\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 1,\n  \"messageTemplate\": \"I am excited to try out new fruit based hair colors from Heena\"\n}"
+										},
+										"url": {
+											"raw": "{{bounty_dev_url}}/api/campaigns/create",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"api",
+												"campaigns",
+												"create"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Campaign created successfully",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Created",
+											"code": 201,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Unauthorized",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Unauthorized",
+											"code": 401,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								},
+								{
+									"name": "Get Single campaign",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{auth_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{bounty_dev_url}}/api/campaigns/6727ae272206a606f94bf7f6",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"api",
+												"campaigns",
+												"6727ae272206a606f94bf7f6"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Campaign created successfully",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Created",
+											"code": 201,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Unauthorized",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Unauthorized",
+											"code": 401,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								},
+								{
+									"name": "publish campaign",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{auth_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"pin\": \"4234\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{bounty_dev_url}}/api/campaigns/6727ae272206a606f94bf7f6/publish",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"api",
+												"campaigns",
+												"6727ae272206a606f94bf7f6",
+												"publish"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Campaign created successfully",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Created",
+											"code": 201,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Unauthorized",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Unauthorized",
+											"code": 401,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"companyId\": \"60f7c0b5d4d3c81234567890\",\n  \"name\": \"Festive Campaign\",\n  \"description\": \"Campaign for the festive season with QR code rewards.\",\n  \"totalAmount\": 1000,\n  \"tags\": [\n    \"festive\",\n    \"holiday\"\n  ],\n  \"triggerType\": \"QR\",\n  \"numberOfCodes\": 100\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/campaigns/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"campaigns",
+														"create"
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "companies",
+					"item": [
+						{
+							"name": "Create a new company",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"mollit ut deserunt\",\n  \"contactName\": \"sunt\",\n  \"email\": \"esse\",\n  \"phoneNumber\": \"exercitation veniam enim nulla\",\n  \"description\": \"do proident\",\n  \"website\": \"elit qui incididu\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/companies",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"companies"
+									]
+								},
+								"description": "Allows the creation of a company in the system."
+							},
+							"response": [
+								{
+									"name": "Company created successfully",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"mollit ut deserunt\",\n  \"contactName\": \"sunt\",\n  \"email\": \"esse\",\n  \"phoneNumber\": \"exercitation veniam enim nulla\",\n  \"description\": \"do proident\",\n  \"website\": \"elit qui incididu\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/companies",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"companies"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Error in company creation data",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"mollit ut deserunt\",\n  \"contactName\": \"sunt\",\n  \"email\": \"esse\",\n  \"phoneNumber\": \"exercitation veniam enim nulla\",\n  \"description\": \"do proident\",\n  \"website\": \"elit qui incididu\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/companies",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"companies"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "Get Company",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{bounty_dev_url}}/api/companies/6727f1660c67b1e1d27ade0f",
+									"host": [
+										"{{bounty_dev_url}}"
+									],
+									"path": [
+										"api",
+										"companies",
+										"6727f1660c67b1e1d27ade0f"
+									]
+								},
+								"description": "Allows the creation of a company in the system."
+							},
+							"response": [
+								{
+									"name": "Company created successfully",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"mollit ut deserunt\",\n  \"contactName\": \"sunt\",\n  \"email\": \"esse\",\n  \"phoneNumber\": \"exercitation veniam enim nulla\",\n  \"description\": \"do proident\",\n  \"website\": \"elit qui incididu\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/companies",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"companies"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Error in company creation data",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"mollit ut deserunt\",\n  \"contactName\": \"sunt\",\n  \"email\": \"esse\",\n  \"phoneNumber\": \"exercitation veniam enim nulla\",\n  \"description\": \"do proident\",\n  \"website\": \"elit qui incididu\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/companies",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"companies"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "Recharge",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"mollit ut deserunt\",\n  \"contactName\": \"sunt\",\n  \"email\": \"esse\",\n  \"phoneNumber\": \"exercitation veniam enim nulla\",\n  \"description\": \"do proident\",\n  \"website\": \"elit qui incididu\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/companies",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"companies"
+									]
+								},
+								"description": "Allows the creation of a company in the system."
+							},
+							"response": [
+								{
+									"name": "Company created successfully",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"mollit ut deserunt\",\n  \"contactName\": \"sunt\",\n  \"email\": \"esse\",\n  \"phoneNumber\": \"exercitation veniam enim nulla\",\n  \"description\": \"do proident\",\n  \"website\": \"elit qui incididu\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/companies",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"companies"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Error in company creation data",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"mollit ut deserunt\",\n  \"contactName\": \"sunt\",\n  \"email\": \"esse\",\n  \"phoneNumber\": \"exercitation veniam enim nulla\",\n  \"description\": \"do proident\",\n  \"website\": \"elit qui incididu\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/companies",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"companies"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "external",
+					"item": [
+						{
+							"name": "processBountyReward",
+							"item": [
+								{
+									"name": "processBountyReward",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "",
+												"type": "text",
+												"disabled": true
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phoneNumber\": \"+919029636258\",\n  \"triggerData\": {\n    \"qrDataText\": \"I am excited to try out new fruit based hair colors from Heena - BOUNTY65406\"\n  }\n}\n",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{bounty_dev_url}}/external/processBountyReward",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"external",
+												"processBountyReward"
+											]
+										},
+										"description": "Validates a QR code and disburses funds if valid."
+									},
+									"response": [
+										{
+											"name": "Funds disbursed successfully",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phoneNumber\": \"aliqua commodo aliquip\",\n  \"qrDataText\": \"consectetur id ut ullamco\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/external/validateQR",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"external",
+														"validateQR"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phoneNumber\": \"aliqua commodo aliquip\",\n  \"qrDataText\": \"consectetur id ut ullamco\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/external/validateQR",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"external",
+														"validateQR"
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Not found",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phoneNumber\": \"aliqua commodo aliquip\",\n  \"qrDataText\": \"consectetur id ut ullamco\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/external/validateQR",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"external",
+														"validateQR"
+													]
+												}
+											},
+											"status": "Not Found",
+											"code": 404,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phoneNumber\": \"aliqua commodo aliquip\",\n  \"qrDataText\": \"consectetur id ut ullamco\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/external/validateQR",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"external",
+														"validateQR"
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "registerCustomer",
+							"item": [
+								{
+									"name": "Register a new customer",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phone_number\": \"+919029636258\",\n  \"full_name\": \"Vishal Singh\",\n  \"campaign_id\" : \"67280a196db4aae40a1813bf\",\n  \"payment_details\": {\n    \"upi_ids\": [\n      \"9029636258@upi\"\n    ]\n\n  }\n  }\n\n\n",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{bounty_dev_url}}/external/registerCustomer",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"external",
+												"registerCustomer"
+											]
+										},
+										"description": "Registers a new customer with the provided details."
+									},
+									"response": [
+										{
+											"name": "Customer created successfully",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phone_number\": \"+1234567890\",\n  \"full_name\": \"John Doe\",\n  \"payment_details\": {\n    \"upi_ids\": [\n      \"john@upi\",\n      \"john@upi\"\n    ],\n    \"bank_details\": [\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      },\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      }\n    ]\n  },\n  \"company\": \"60d5ec49f1d2c916c8f0e8b5\",\n  \"last_campaign_details\": {\n    \"campaign_id\": \"60d5ec49f1d2c916c8f0e8b6\",\n    \"details_user_shared\": {\n      \"Ut_3\": -47568236.52453042,\n      \"proident_759\": 12878387.87539415,\n      \"reprehenderit0d\": -41410081.28573662,\n      \"fugiat_fa9\": \"dolor enim dolore eu\"\n    },\n    \"money_they_received\": 1500.75\n  },\n  \"docs\": [\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    },\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    }\n  ],\n  \"social_ids\": [\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    },\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    }\n  ],\n  \"custom_fields\": {\n    \"dolore_9\": 44127800.111237735,\n    \"dolor_7\": false,\n    \"pariatur3f5\": 90368763\n  }\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/external/registerCustomer",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"external",
+														"registerCustomer"
+													]
+												}
+											},
+											"status": "Created",
+											"code": 201,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"_id\": \"60d5ec49f1d2c916c8f0e8b7\",\n  \"full_name\": \"John Doe\",\n  \"phone_number\": \"+1234567890\",\n  \"payment_details\": {\n    \"upi_ids\": [\n      \"john@upi\"\n    ],\n    \"bank_details\": [\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      },\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      }\n    ]\n  },\n  \"company\": \"60d5ec49f1d2c916c8f0e8b5\",\n  \"last_campaign_details\": {\n    \"campaign_id\": \"60d5ec49f1d2c916c8f0e8b6\",\n    \"details_user_shared\": {\n      \"feedback\": \"Great service!\"\n    },\n    \"money_they_received\": 1500.75\n  },\n  \"docs\": [\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    },\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    }\n  ],\n  \"social_ids\": [\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    },\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    }\n  ],\n  \"custom_fields\": {\n    \"preferred_language\": \"English\"\n  },\n  \"createdAt\": \"2024-04-23T18:25:43.511Z\",\n  \"updatedAt\": \"2024-04-23T18:25:43.511Z\"\n}"
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phone_number\": \"+1234567890\",\n  \"full_name\": \"John Doe\",\n  \"payment_details\": {\n    \"upi_ids\": [\n      \"john@upi\",\n      \"john@upi\"\n    ],\n    \"bank_details\": [\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      },\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      }\n    ]\n  },\n  \"company\": \"60d5ec49f1d2c916c8f0e8b5\",\n  \"last_campaign_details\": {\n    \"campaign_id\": \"60d5ec49f1d2c916c8f0e8b6\",\n    \"details_user_shared\": {\n      \"Ut_3\": -47568236.52453042,\n      \"proident_759\": 12878387.87539415,\n      \"reprehenderit0d\": -41410081.28573662,\n      \"fugiat_fa9\": \"dolor enim dolore eu\"\n    },\n    \"money_they_received\": 1500.75\n  },\n  \"docs\": [\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    },\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    }\n  ],\n  \"social_ids\": [\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    },\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    }\n  ],\n  \"custom_fields\": {\n    \"dolore_9\": 44127800.111237735,\n    \"dolor_7\": false,\n    \"pariatur3f5\": 90368763\n  }\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/external/registerCustomer",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"external",
+														"registerCustomer"
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"error\": \"Phone number is required.\"\n}"
+										},
+										{
+											"name": "Conflict - Phone number already exists",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phone_number\": \"+1234567890\",\n  \"full_name\": \"John Doe\",\n  \"payment_details\": {\n    \"upi_ids\": [\n      \"john@upi\",\n      \"john@upi\"\n    ],\n    \"bank_details\": [\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      },\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      }\n    ]\n  },\n  \"company\": \"60d5ec49f1d2c916c8f0e8b5\",\n  \"last_campaign_details\": {\n    \"campaign_id\": \"60d5ec49f1d2c916c8f0e8b6\",\n    \"details_user_shared\": {\n      \"Ut_3\": -47568236.52453042,\n      \"proident_759\": 12878387.87539415,\n      \"reprehenderit0d\": -41410081.28573662,\n      \"fugiat_fa9\": \"dolor enim dolore eu\"\n    },\n    \"money_they_received\": 1500.75\n  },\n  \"docs\": [\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    },\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    }\n  ],\n  \"social_ids\": [\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    },\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    }\n  ],\n  \"custom_fields\": {\n    \"dolore_9\": 44127800.111237735,\n    \"dolor_7\": false,\n    \"pariatur3f5\": 90368763\n  }\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/external/registerCustomer",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"external",
+														"registerCustomer"
+													]
+												}
+											},
+											"status": "Conflict",
+											"code": 409,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"error\": \"Phone number already exists.\"\n}"
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phone_number\": \"+1234567890\",\n  \"full_name\": \"John Doe\",\n  \"payment_details\": {\n    \"upi_ids\": [\n      \"john@upi\",\n      \"john@upi\"\n    ],\n    \"bank_details\": [\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      },\n      {\n        \"account_number\": \"123456789012\",\n        \"ifsc\": \"IFSC0001XYZ\"\n      }\n    ]\n  },\n  \"company\": \"60d5ec49f1d2c916c8f0e8b5\",\n  \"last_campaign_details\": {\n    \"campaign_id\": \"60d5ec49f1d2c916c8f0e8b6\",\n    \"details_user_shared\": {\n      \"Ut_3\": -47568236.52453042,\n      \"proident_759\": 12878387.87539415,\n      \"reprehenderit0d\": -41410081.28573662,\n      \"fugiat_fa9\": \"dolor enim dolore eu\"\n    },\n    \"money_they_received\": 1500.75\n  },\n  \"docs\": [\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    },\n    {\n      \"doc_type\": \"passport\",\n      \"doc_url\": \"https://example.com/docs/passport.pdf\"\n    }\n  ],\n  \"social_ids\": [\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    },\n    {\n      \"platform\": \"facebook\",\n      \"id\": \"fb123456789\"\n    }\n  ],\n  \"custom_fields\": {\n    \"dolore_9\": 44127800.111237735,\n    \"dolor_7\": false,\n    \"pariatur3f5\": 90368763\n  }\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/external/registerCustomer",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"external",
+														"registerCustomer"
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"error\": \"An unexpected error occurred.\"\n}"
+										}
+									]
+								},
+								{
+									"name": "UpdateCustomer",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{auth_token}}",
+												"type": "text",
+												"disabled": true
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phone_number\": \"+919029636258\",\n  \"full_name\": \"John Doe Updated\",\n  \"payment_details\": {\n    \"upi_ids\": [\"9029636258@upi\"]\n  },\n  \"custom_fields\": {\n    \"age\": 31,\n    \"gender\": \"Male\"\n  },\n  \"address\": \"456 New Address, City, Country\"\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{bounty_dev_url}}/external/updateCustomer",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"external",
+												"updateCustomer"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "payout_config",
+							"item": [
+								{
+									"name": "Get payout config",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{auth_token}}",
+												"type": "text",
+												"disabled": true
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phone_number\": \"+919029636258\",\n  \"full_name\": \"John Doe Updated\",\n  \"payment_details\": {\n    \"upi_ids\": [\"john.doe@upi\"]\n  },\n  \"custom_fields\": {\n    \"age\": 31,\n    \"gender\": \"Male\"\n  },\n  \"address\": \"456 New Address, City, Country\"\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{bounty_dev_url}}/external/getPayoutConfig/67280a196db4aae40a1813bf",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"external",
+												"getPayoutConfig",
+												"67280a196db4aae40a1813bf"
+											]
+										},
+										"description": "Registers a new customer with the provided details."
+									},
+									"response": [
+										{
+											"name": "Customer created successfully",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{auth_token}}",
+														"type": "text",
+														"disabled": true
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phone_number\": \"+919029636258\",\n  \"full_name\": \"John Doe Updated\",\n  \"payment_details\": {\n    \"upi_ids\": [\"john.doe@upi\"]\n  },\n  \"custom_fields\": {\n    \"age\": 31,\n    \"gender\": \"Male\"\n  },\n  \"address\": \"456 New Address, City, Country\"\n}\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{bounty_dev_url}}/external/getPayoutConfig/67280a196db4aae40a1813bf",
+													"host": [
+														"{{bounty_dev_url}}"
+													],
+													"path": [
+														"external",
+														"getPayoutConfig",
+														"67280a196db4aae40a1813bf"
+													]
+												},
+												"description": "Registers a new customer with the provided details."
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{auth_token}}",
+														"type": "text",
+														"disabled": true
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phone_number\": \"+919029636258\",\n  \"full_name\": \"John Doe Updated\",\n  \"payment_details\": {\n    \"upi_ids\": [\"john.doe@upi\"]\n  },\n  \"custom_fields\": {\n    \"age\": 31,\n    \"gender\": \"Male\"\n  },\n  \"address\": \"456 New Address, City, Country\"\n}\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{bounty_dev_url}}/external/getPayoutConfig/67280a196db4aae40a1813bf",
+													"host": [
+														"{{bounty_dev_url}}"
+													],
+													"path": [
+														"external",
+														"getPayoutConfig",
+														"67280a196db4aae40a1813bf"
+													]
+												},
+												"description": "Registers a new customer with the provided details."
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Conflict - Phone number already exists",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{auth_token}}",
+														"type": "text",
+														"disabled": true
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phone_number\": \"+919029636258\",\n  \"full_name\": \"John Doe Updated\",\n  \"payment_details\": {\n    \"upi_ids\": [\"john.doe@upi\"]\n  },\n  \"custom_fields\": {\n    \"age\": 31,\n    \"gender\": \"Male\"\n  },\n  \"address\": \"456 New Address, City, Country\"\n}\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{bounty_dev_url}}/external/getPayoutConfig/67280a196db4aae40a1813bf",
+													"host": [
+														"{{bounty_dev_url}}"
+													],
+													"path": [
+														"external",
+														"getPayoutConfig",
+														"67280a196db4aae40a1813bf"
+													]
+												},
+												"description": "Registers a new customer with the provided details."
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{auth_token}}",
+														"type": "text",
+														"disabled": true
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"phone_number\": \"+919029636258\",\n  \"full_name\": \"John Doe Updated\",\n  \"payment_details\": {\n    \"upi_ids\": [\"john.doe@upi\"]\n  },\n  \"custom_fields\": {\n    \"age\": 31,\n    \"gender\": \"Male\"\n  },\n  \"address\": \"456 New Address, City, Country\"\n}\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{bounty_dev_url}}/external/getPayoutConfig/67280a196db4aae40a1813bf",
+													"host": [
+														"{{bounty_dev_url}}"
+													],
+													"path": [
+														"external",
+														"getPayoutConfig",
+														"67280a196db4aae40a1813bf"
+													]
+												},
+												"description": "Registers a new customer with the provided details."
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										}
+									]
+								},
+								{
+									"name": "Get payout config Copy",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": [
+										{
+											"name": "Customer created successfully",
+											"originalRequest": {
+												"method": "GET",
+												"header": []
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "GET",
+												"header": []
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Conflict - Phone number already exists",
+											"originalRequest": {
+												"method": "GET",
+												"header": []
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "GET",
+												"header": []
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										}
+									]
+								},
+								{
+									"name": "Update payout config",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"payoutConfig\": {\n    \"1\": 100,\n    \"2\": 80,\n    \"3\": 60\n  }\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{bounty_dev_url}}/external/updatePayoutConfig/67280a196db4aae40a1813bf",
+											"host": [
+												"{{bounty_dev_url}}"
+											],
+											"path": [
+												"external",
+												"updatePayoutConfig",
+												"67280a196db4aae40a1813bf"
+											]
+										},
+										"description": "Registers a new customer with the provided details."
+									},
+									"response": [
+										{
+											"name": "Customer created successfully",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"payoutConfig\": {\n    \"1\": 100,\n    \"2\": 80,\n    \"3\": 60\n  }\n}\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{bounty_dev_url}}/external/updatePayoutConfig/67280a196db4aae40a1813bf",
+													"host": [
+														"{{bounty_dev_url}}"
+													],
+													"path": [
+														"external",
+														"updatePayoutConfig",
+														"67280a196db4aae40a1813bf"
+													]
+												},
+												"description": "Registers a new customer with the provided details."
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Bad request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"payoutConfig\": {\n    \"1\": 100,\n    \"2\": 80,\n    \"3\": 60\n  }\n}\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{bounty_dev_url}}/external/updatePayoutConfig/67280a196db4aae40a1813bf",
+													"host": [
+														"{{bounty_dev_url}}"
+													],
+													"path": [
+														"external",
+														"updatePayoutConfig",
+														"67280a196db4aae40a1813bf"
+													]
+												},
+												"description": "Registers a new customer with the provided details."
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Conflict - Phone number already exists",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"payoutConfig\": {\n    \"1\": 100,\n    \"2\": 80,\n    \"3\": 60\n  }\n}\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{bounty_dev_url}}/external/updatePayoutConfig/67280a196db4aae40a1813bf",
+													"host": [
+														"{{bounty_dev_url}}"
+													],
+													"path": [
+														"external",
+														"updatePayoutConfig",
+														"67280a196db4aae40a1813bf"
+													]
+												},
+												"description": "Registers a new customer with the provided details."
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Server error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"payoutConfig\": {\n    \"1\": 100,\n    \"2\": 80,\n    \"3\": 60\n  }\n}\n",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{bounty_dev_url}}/external/updatePayoutConfig/67280a196db4aae40a1813bf",
+													"host": [
+														"{{bounty_dev_url}}"
+													],
+													"path": [
+														"external",
+														"updatePayoutConfig",
+														"67280a196db4aae40a1813bf"
+													]
+												},
+												"description": "Registers a new customer with the provided details."
+											},
+											"_postman_previewlanguage": "",
+											"header": "",
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "google",
+					"item": [
+						{
+							"name": "Authenticate user via Google",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"idToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/google",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"google"
+									]
+								},
+								"description": "Authenticates a user using their Google ID token and returns a JWT for session management."
+							},
+							"response": [
+								{
+									"name": "Authentication successful. Returns JWT and user information.",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"idToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/auth/google",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"auth",
+												"google"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": \"60d5ec49f1d2c916c8f0e8b7\",\n    \"full_name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"avatar\": \"https://example.com/avatar/johndoe.jpg\"\n  }\n}"
+								},
+								{
+									"name": "Bad Request. Missing or invalid ID token.",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"idToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/auth/google",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"auth",
+												"google"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"Invalid or missing ID token.\"\n}"
+								},
+								{
+									"name": "Unauthorized. Failed to authenticate the ID token.",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"idToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/auth/google",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"auth",
+												"google"
+											]
+										}
+									},
+									"status": "Unauthorized",
+									"code": 401,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"Invalid ID token.\"\n}"
+								},
+								{
+									"name": "Internal Server Error. An unexpected error occurred.",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"idToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/auth/google",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"auth",
+												"google"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"An unexpected error occurred.\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "signup",
+					"item": [
+						{
+							"name": "Register a new user",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"mobileNumber\": \"918779780352\",\n  \"typeOfUser\": \"brand-admin\",\n  \"upiId\": \"john@upi\",\n  \"name\": \"JohnDoe\",\n  \"companyId\": \"60f7c0b5d4d3c81234567890\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{bounty_prod_url}}auth/signup",
+									"host": [
+										"{{bounty_prod_url}}auth"
+									],
+									"path": [
+										"signup"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "User registered successfully",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"mobileNumber\": \"918779780352\",\n  \"typeOfUser\": \"brand-admin\",\n  \"upiId\": \"john@upi\",\n  \"name\": \"JohnDoe\",\n  \"companyId\": \"60f7c0b5d4d3c81234567890\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}auth/signup",
+											"host": [
+												"{{baseUrl}}auth"
+											],
+											"path": [
+												"signup"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Bad request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"mobileNumber\": \"918779780352\",\n  \"typeOfUser\": \"brand-admin\",\n  \"upiId\": \"john@upi\",\n  \"name\": \"JohnDoe\",\n  \"companyId\": \"60f7c0b5d4d3c81234567890\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}auth/signup",
+											"host": [
+												"{{baseUrl}}auth"
+											],
+											"path": [
+												"signup"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Server error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"mobileNumber\": \"918779780352\",\n  \"typeOfUser\": \"brand-admin\",\n  \"upiId\": \"john@upi\",\n  \"name\": \"JohnDoe\",\n  \"companyId\": \"60f7c0b5d4d3c81234567890\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}auth/signup",
+											"host": [
+												"{{baseUrl}}auth"
+											],
+											"path": [
+												"signup"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "login",
+					"item": [
+						{
+							"name": "User login",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"ashish@indiahenna.com\",\n\"password\": \"Delhi@123\"\n}\n",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{bounty_prod_url}}/auth/login",
+									"host": [
+										"{{bounty_prod_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Login successful",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phoneNumber\": \"918779780352\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/auth/login",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"auth",
+												"login"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Bad request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phoneNumber\": \"918779780352\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/auth/login",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"auth",
+												"login"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Unauthorized",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phoneNumber\": \"918779780352\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/auth/login",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"auth",
+												"login"
+											]
+										}
+									},
+									"status": "Unauthorized",
+									"code": 401,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Server error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phoneNumber\": \"918779780352\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/auth/login",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"auth",
+												"login"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "/"
+		}
+	]
+}
