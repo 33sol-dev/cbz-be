@@ -8,6 +8,7 @@ const CustomerSchema = new Schema(
     full_name: { type: String },
     phone_number: { type: String, required: true, unique: true },
     assignedTo: { type: String }, // Phone number of the customer
+    email: { type: String },
     payment_details: {
       upi_ids: [{ type: String }],
       bank_details: [
