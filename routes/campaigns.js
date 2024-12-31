@@ -7,6 +7,7 @@ const { verifyToken } = require('../middlewares/auth');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' }); 
 
+// router.post('/create', upload.single('file'), campaignController.createCampaign);
 router.post('/create', verifyToken, upload.single('file'), campaignController.createCampaign);
 router.get('/', verifyToken, campaignController.getCampaigns);
 router.get('/:campaignId', verifyToken, campaignController.getCampaignById);

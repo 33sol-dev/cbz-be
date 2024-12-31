@@ -4,17 +4,10 @@ const mongoose = require('mongoose');
 const logger = require('./utils/logger');
 
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      // Additional options if necessary
-    });
-    logger.info(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    logger.error('Error connecting to MongoDB:', error);
-    process.exit(1); // Exit process with failure
-  }
+  mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => logger.info("MongoDB Connected"))
+  .catch((err) => logger.error("MongoDB connection error:", err));
 };
 
 module.exports = connectDB;

@@ -11,10 +11,3 @@ exports.signup = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
-  // Logic for user login
-};
-
-exports.getUserProfile = async (req, res) => {
-  // Logic to fetch user profile
-};

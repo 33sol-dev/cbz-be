@@ -23,7 +23,7 @@ const swaggerDefinition = {
       description: 'Development server',
     },
     {
-      url: 'https://bounty.33solutions.dev/',
+      url: 'http://localhost:5001/',
       description: 'Production server',
     },
   ],

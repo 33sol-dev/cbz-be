@@ -1,12 +1,14 @@
 // controllers/campaignController.js
 
-const Campaign = require('../models/Campaign');
-const Company = require('../models/Company');
-const Code = require('../models/Code');
-const logger = require('../utils/logger');
-const qrCodeQueue = require('../queues/qrCodeQueue');
-const customerOnboardingQueue = require('../queues/customerOnboardingQueue');
-const { generateRandomPin } = require('../utils/pinGenerator'); // Function to generate random PIN
+const Campaign = require("../models/Campaign");
+const Company = require("../models/Company");
+const Code = require("../models/Code");
+const logger = require("../utils/logger");
+const qrCodeQueue = require("../queues/qrCodeQueue");
+const customerOnboardingQueue = require("../queues/customerOnboardingQueue");
+const { generateRandomPin } = require("../utils/pinGenerator"); // Function to generate random PIN
+const Transaction = require("../models/Transaction");
+const Beneficiary = require("../models/Beneficiary");
 
 exports.createCampaign = async (req, res) => {
   let {
@@ -22,36 +24,42 @@ exports.createCampaign = async (req, res) => {
     reward_type,
     bounty_cashback_config,
     customFieldConfig,
-    triggerText
+    triggerText,
   } = req.body;
 
   try {
     // Validate required fields
-    if (!companyId || !name || !numberOfCodes  || !qrStyle) {
+    if (!companyId || !name || !numberOfCodes || !qrStyle) {
       return res.status(400).json({
-        message: 'companyId, name, numberOfCodes, and qrStyle are required.',
+        message: "companyId, name, numberOfCodes, and qrStyle are required.",
       });
     }
-
+    logger.info("Campaign Type:", req.body);
     // Validate triggerType
-    if (!['QR', 'Excel'].includes(triggerType)) {
-      return res.status(400).json({ message: 'Invalid triggerType. Must be "QR" or "Excel".' });
+    if (!["QR", "Excel"].includes(triggerType)) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid triggerType. Must be "QR" or "Excel".' });
     }
 
     // Validate qrStyle
-    if (!['simple', 'stylized'].includes(qrStyle)) {
-      return res.status(400).json({ message: 'Invalid qrStyle. Must be "simple" or "stylized".' });
+    if (!["simple", "stylized"].includes(qrStyle)) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid qrStyle. Must be "simple" or "stylized".' });
     }
 
     // If qrStyle is stylized, logoUrl is required
-    if (qrStyle === 'stylized' && !logoUrl) {
-      return res.status(400).json({ message: 'logoUrl is required for stylized QR codes.' });
+    if (qrStyle === "stylized" && !logoUrl) {
+      return res
+        .status(400)
+        .json({ message: "logoUrl is required for stylized QR codes." });
     }
 
     // Parse numberOfCodes to integer
     const numCodes = parseInt(numberOfCodes, 10);
     if (isNaN(numCodes) || numCodes <= 0) {
-      return res.status(400).json({ message: 'Invalid number of codes.' });
+      return res.status(400).json({ message: "Invalid number of codes." });
     }
 
     // Find the company associated with the user
@@ -61,10 +69,12 @@ exports.createCampaign = async (req, res) => {
     });
 
     if (!userCompany) {
-      return res.status(404).json({ message: 'Company not found or access denied.' });
+      return res
+        .status(404)
+        .json({ message: "Company not found or access denied." });
     }
 
-    logger.info('User Company:', userCompany);
+    logger.info("User Company:", userCompany);
 
     // Check QR code balance
     const qrCodeBalance = userCompany.qrCodeBalance;
@@ -85,35 +95,47 @@ exports.createCampaign = async (req, res) => {
       const defaultWhatsAppNumbersEnv = process.env.DEFAULT_WHATSAPP_NUMBERS;
       let defaultNumbers = [];
 
-      if (defaultWhatsAppNumbersEnv && defaultWhatsAppNumbersEnv.trim() !== '') {
-        if (defaultWhatsAppNumbersEnv.includes(',')) {
-          defaultNumbers = defaultWhatsAppNumbersEnv.split(',').map((number) => number.trim());
+      if (
+        defaultWhatsAppNumbersEnv &&
+        defaultWhatsAppNumbersEnv.trim() !== ""
+      ) {
+        if (defaultWhatsAppNumbersEnv.includes(",")) {
+          defaultNumbers = defaultWhatsAppNumbersEnv
+            .split(",")
+            .map((number) => number.trim());
         } else {
           defaultNumbers = [defaultWhatsAppNumbersEnv.trim()];
         }
       }
 
       if (defaultNumbers.length === 0) {
-        return res.status(400).json({ message: 'No default WhatsApp numbers configured.' });
+        return res
+          .status(400)
+          .json({ message: "No default WhatsApp numbers configured." });
       }
 
-      mobileNumber = defaultNumbers[Math.floor(Math.random() * defaultNumbers.length)];
+      mobileNumber =
+        defaultNumbers[Math.floor(Math.random() * defaultNumbers.length)];
     }
 
     // Parse customFieldConfig if provided
-    if (typeof customFieldConfig === 'string') {
+    if (typeof customFieldConfig === "string") {
       customFieldConfig = JSON.parse(customFieldConfig);
     }
 
     // Validate customFieldConfig if provided
     if (customFieldConfig) {
       if (!Array.isArray(customFieldConfig)) {
-        return res.status(400).json({ message: 'customFieldConfig must be an array' });
+        return res
+          .status(400)
+          .json({ message: "customFieldConfig must be an array" });
       }
 
       for (const field of customFieldConfig) {
         if (!field.fieldName) {
-          return res.status(400).json({ message: 'Each custom field must have a fieldName' });
+          return res
+            .status(400)
+            .json({ message: "Each custom field must have a fieldName" });
         }
       }
     }
@@ -128,22 +150,17 @@ exports.createCampaign = async (req, res) => {
       description,
       totalAmount,
       tags,
-      status: 'Pending',
+      status: "Pending",
       reward_type,
       bounty_cashback_config,
       customFieldConfig,
       triggerText,
-      publishPin: publishPin , // Generate and store the PIN
+      publishPin: publishPin, // Generate and store the PIN
     });
 
     // Generate default payoutConfig based on bounty_cashback_config
-    if (bounty_cashback_config && reward_type === 'cashback') {
+    if (bounty_cashback_config && reward_type === "cashback") {
       const { avg_amount, max_amount, min_amount } = bounty_cashback_config;
-
-      // For simplicity, create a payoutConfig where:
-      // - First-time customer gets max_amount
-      // - Second-time customer gets avg_amount
-      // - Subsequent customers get min_amount
 
       campaign.payoutConfig = {
         1: max_amount,
@@ -163,35 +180,37 @@ exports.createCampaign = async (req, res) => {
     existingCodeDocs.forEach((doc) => existingCodes.add(doc.code));
 
     const totalCodesToGenerate = numCodes;
-    const prefix = 'BOUNTY';
+    const prefix = "BOUNTY";
 
     while (codes.length < totalCodesToGenerate) {
       const randomNum = Math.floor(10000 + Math.random() * 90000); // Generate a 5-digit number
       const code = `${prefix}${randomNum}`;
-
       if (!existingCodes.has(code)) {
         codes.push(code);
         existingCodes.add(code); // Add to the set to avoid duplicates in this batch
       }
     }
-
-    if (triggerType === 'Excel') {
+    console.log(codes, "codes");
+    console.log(triggerType, "Triggers");
+    if (triggerType === "Excel") {
       // Ensure file is uploaded
       if (!req.file || !req.file.path) {
-        return res.status(400).json({ message: 'CSV file is required for Excel trigger type.' });
+        return res
+          .status(400)
+          .json({ message: "CSV file is required for Excel trigger type." });
       }
-      logger.info("JBJBJ"+campaign._id);
+      logger.info("JBJBJ" + campaign._id);
       // Enqueue the customer onboarding job with codes
-      await customerOnboardingQueue.add('customerOnboarding', {
+      await customerOnboardingQueue.add("customerOnboarding", {
         companyId,
         campaignId: campaign._id,
         csvFilePath: req.file.path,
         userId: req.user.id,
         codes, // Pass the generated codes
       });
-    } else if (triggerType === 'QR') {
+    } else if (triggerType === "QR") {
       // Enqueue the QR code generation job
-      await qrCodeQueue.add('qrCodeGeneration', {
+      await qrCodeQueue.add("qrCodeGeneration", {
         companyId,
         campaignId: campaign._id,
         codes,
@@ -202,29 +221,31 @@ exports.createCampaign = async (req, res) => {
         userId: req.user.id,
       });
     } else {
-      return res.status(400).json({ message: 'Invalid triggerType.' });
+      return res.status(400).json({ message: "Invalid triggerType." });
     }
 
     res.status(201).json({
-      message: 'Campaign creation initiated successfully.',
+      message: "Campaign creation initiated successfully.",
       campaign,
+      triggerType,
     });
   } catch (err) {
-    logger.error('Error in createCampaign:', err);
-    res.status(500).json({ message: 'Server Error', error: err.toString() });
+    logger.error("Error in createCampaign:", err);
+    res.status(500).json({ message: "Server Error", error: err.toString() });
   }
 };
 
-
 exports.getCampaigns = async (req, res) => {
   try {
-    logger.info('Fetching campaigns for user ID:', req.user);
-    const campaigns = await Campaign.find({ user: req.user.id }).populate('company');
-    logger.info('Found campaigns:', campaigns);
+    logger.info("Fetching campaigns for user ID:", req.user);
+    const campaigns = await Campaign.find({ user: req.user.id }).populate(
+      "company"
+    );
+    logger.info("Found campaigns:", campaigns);
     res.json({ campaigns });
   } catch (err) {
-    logger.error('Error in getCampaigns:', err);
-    res.status(500).send('Server Error');
+    logger.error("Error in getCampaigns:", err);
+    res.status(500).send("Server Error");
   }
 };
 // controllers/campaignController.js
@@ -234,28 +255,34 @@ exports.getCampaignById = async (req, res) => {
     const campaign = await Campaign.findById(campaignId);
 
     if (!campaign || campaign.user.toString() !== req.user.id) {
-      return res.status(404).json({ message: 'Campaign not found or access denied' });
+      return res
+        .status(404)
+        .json({ message: "Campaign not found or access denied" });
     }
 
     res.json({ campaign });
   } catch (err) {
-    logger.error('Error in getCampaignById:', err);
-    res.status(500).json({ message: 'Server Error', error: err.toString() });
+    logger.error("Error in getCampaignById:", err);
+    res.status(500).json({ message: "Server Error", error: err.toString() });
   }
 };
-
 
 exports.getCampaignInsights = async (req, res) => {
   const campaignId = req.params.campaignId;
 
   try {
-    const campaign = await Campaign.findById(campaignId).populate('company');
+    const campaign = await Campaign.findById(campaignId).populate("company");
     if (!campaign || campaign.user.toString() !== req.user.id) {
-      return res.status(404).json({ message: 'Campaign not found or access denied' });
+      return res
+        .status(404)
+        .json({ message: "Campaign not found or access denied" });
     }
 
     const transactions = await Transaction.find({ campaign: campaignId });
-    const totalCashbackGiven = transactions.reduce((total, txn) => total + txn.amount, 0);
+    const totalCashbackGiven = transactions.reduce(
+      (total, txn) => total + txn.amount,
+      0
+    );
     const totalUsers = transactions.length;
 
     const insights = {
@@ -268,12 +295,10 @@ exports.getCampaignInsights = async (req, res) => {
 
     res.json({ campaign, insights });
   } catch (err) {
-    logger.error('Error in getCampaignInsights:', err);
-    res.status(500).json({ message: 'Server error', error: err.toString() });
+    logger.error("Error in getCampaignInsights:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
   }
 };
-
-
 
 exports.publishCampaign = async (req, res) => {
   const campaignId = req.params.campaignId;
@@ -282,33 +307,34 @@ exports.publishCampaign = async (req, res) => {
   try {
     const campaign = await Campaign.findById(campaignId);
     if (!campaign || campaign.user.toString() !== req.user.id) {
-      return res.status(404).json({ message: 'Campaign not found or access denied' });
+      return res
+        .status(404)
+        .json({ message: "Campaign not found or access denied" });
     }
 
-    if (campaign.status !== 'Ready') {
-      return res.status(400).json({ message: 'Campaign is not ready to be published.' });
+    if (campaign.status !== "Ready") {
+      return res
+        .status(400)
+        .json({ message: "Campaign is not ready to be published." });
     }
     logger.info(pin);
-    
+
     // Verify the PIN (for now, you can hardcode the PIN or store it in the campaign)
     const correctPin = campaign.publishPin; // Assume you have stored the PIN in the campaign
     logger.info(correctPin);
-    if (pin !== correctPin ) {
-      return res.status(400).json({ message: 'Invalid PIN.' });
+    if (pin !== correctPin) {
+      return res.status(400).json({ message: "Invalid PIN." });
     }
 
-    campaign.status = 'Active';
+    campaign.status = "Active";
     await campaign.save();
 
-    res.json({ message: 'Campaign published successfully', campaign });
+    res.json({ message: "Campaign published successfully", campaign });
   } catch (err) {
-    logger.error('Error in publishCampaign:', err);
-    res.status(500).json({ message: 'Server error', error: err.toString() });
+    logger.error("Error in publishCampaign:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
   }
 };
-
-
-
 
 exports.updatePayoutConfig = async (req, res) => {
   const campaignId = req.params.campaignId;
@@ -317,16 +343,21 @@ exports.updatePayoutConfig = async (req, res) => {
   try {
     const campaign = await Campaign.findById(campaignId);
     if (!campaign || campaign.user.toString() !== req.user.id) {
-      return res.status(404).json({ message: 'Campaign not found or access denied' });
+      return res
+        .status(404)
+        .json({ message: "Campaign not found or access denied" });
     }
 
     campaign.payoutConfig = payoutConfig;
     await campaign.save();
 
-    res.json({ message: 'Payout configuration updated successfully', campaign });
+    res.json({
+      message: "Payout configuration updated successfully",
+      campaign,
+    });
   } catch (err) {
-    logger.error('Error in updatePayoutConfig:', err);
-    res.status(500).json({ message: 'Server error', error: err.toString() });
+    logger.error("Error in updatePayoutConfig:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
   }
 };
 
@@ -336,21 +367,91 @@ exports.getCampaignSummary = async (req, res) => {
   try {
     const campaign = await Campaign.findById(campaignId);
     if (!campaign || campaign.user.toString() !== req.user.id) {
-      return res.status(404).json({ message: 'Campaign not found or access denied' });
+      return res
+        .status(404)
+        .json({ message: "Campaign not found or access denied" });
     }
 
     const transactions = await Transaction.find({ campaign: campaignId });
-    const totalCashbackGiven = transactions.reduce((total, txn) => total + txn.amount, 0);
+    const totalCashbackGiven = transactions.reduce(
+      (total, txn) => total + txn.amount,
+      0
+    );
     const totalUsers = transactions.length;
 
     const summary = `Your campaign "${campaign.name}" reached ${totalUsers} users and disbursed a total of Rs.${totalCashbackGiven} in cashback. The average cashback per user was Rs.${(
       totalCashbackGiven / totalUsers
-    ).toFixed(2)}. Consider increasing engagement by offering higher rewards to first-time users.`;
+    ).toFixed(
+      2
+    )}. Consider increasing engagement by offering higher rewards to first-time users.`;
 
     res.json({ summary });
   } catch (err) {
-    logger.error('Error in getCampaignSummary:', err);
-    res.status(500).json({ message: 'Server error', error: err.toString() });
+    logger.error("Error in getCampaignSummary:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
   }
 };
 
+exports.addBeneficiary = async (req, res) => {
+  const campaignId = req.params.campaignId;
+  const { mobileNumber, name, upiId, email } = req.body;
+
+  try {
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign || campaign.user.toString() !== req.user.id) {
+      return res
+        .status(404)
+        .json({ message: "Campaign not found or access denied" });
+    }
+
+    const beneficiaryExists = campaign.beneficiaries.some(
+      (b) => b.beneficiaryMobile === mobileNumber
+    );
+
+    if (beneficiaryExists) {
+      return res
+        .status(400)
+        .json({ message: "Beneficiary already exists for this campaign." });
+    }
+
+    const beneFiciary = Beneficiary.create({
+      beneficiaryName: name,
+      upiId: upiId,
+      beneficiaryMobile: mobileNumber,
+      beneficiaryEmail: email,
+    });
+
+    campaign.beneficiaries.push(beneFiciary);
+    await campaign.save();
+
+    res.json({ message: "Beneficiary added successfully", campaign });
+  } catch (err) {
+    logger.error("Error in addBeneficiary:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
+  }
+};
+
+exports.deleteBeneficiary = async (req, res) => {
+  const campaignId = req.params.campaignId;
+  const { mobileNumber } = req.body;
+
+  try {
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign || campaign.user.toString() !== req.user.id) {
+      return res
+        .status(404)
+        .json({ message: "Campaign not found or access denied" });
+    }
+
+    campaign.beneficiaries = campaign.beneficiaries.filter(
+      (b) => b.beneficiaryMobile !== mobileNumber
+    );
+
+    await campaign.save();
+
+    res.json({ message: "Beneficiary deleted successfully", campaign });
+  } catch (err) {
+    logger.error("Error in deleteBeneficiary:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
+  }
+};

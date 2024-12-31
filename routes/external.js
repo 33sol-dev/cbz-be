@@ -5,6 +5,7 @@ const externalController = require('../controllers/externalController');
 // Existing routes...
 
 // Process Bounty Reward
+router.get('/qr/processQrData/:data', externalController.processQrData);
 router.post('/processBountyReward', externalController.processBountyReward);
 
 // Register Customer
