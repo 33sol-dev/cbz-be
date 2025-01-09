@@ -63,16 +63,20 @@ const CampaignSchema = new mongoose.Schema(
     // Task type associated with the campaign
     taskType: {
       type: String,
-      enum: ["award", "digital_activation", "social_media", "location_sharing","video_watching"],
+      enum: [
+        "award",
+        "digital_activation",
+        "social_media",
+        "location_sharing",
+        "video_watching",
+      ],
       default: "award",
     },
 
-    beneficiaries: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Beneficiary",
-      },
-    ],
+    beneficiary: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Beneficiary",
+    },
 
     // Generate A Single QR code for Digital Activation and Beneficiary benefits else false for single QR USER
     uniqueQrCodes: {

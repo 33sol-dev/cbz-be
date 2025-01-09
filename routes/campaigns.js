@@ -12,7 +12,6 @@ router.post('/create', verifyToken, upload.single('file'), campaignController.cr
 router.get('/', verifyToken, campaignController.getCampaigns);
 router.get('/:campaignId', verifyToken, campaignController.getCampaignById);
 router.get('/:campaignId/insights', verifyToken, campaignController.getCampaignInsights);
-
 router.post('/:campaignId/publish', verifyToken, campaignController.publishCampaign);
 
 

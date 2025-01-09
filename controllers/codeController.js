@@ -4,7 +4,7 @@ const Customer = require("../models/Customer");
 
 // You can add Different Task Functions as per the Added Task types in the Campaign
 const taskFunctionsMap = {
-  award: (code) => {
+  award: async(code) => {
     // Redirect To URL to collect UPI Details
     console.log("Redirecting to Award Page");
     return {
@@ -14,14 +14,14 @@ const taskFunctionsMap = {
   },
   digital_activation: async (code) => {
     // Sending Money To beneficiary
-    const beneficiary = await Beneficiary.findOne({ campaign: campaign._id });
-    console.log("Sending Money to Beneficiary", beneficiary.upiId);
+    const beneficiary = await Beneficiary.findById(code.campaign.beneficiary);
+    console.log("Sending Money to Beneficiary", beneficiary.beneficiaryName ," ", beneficiary.upiId);
     return {
       redirectUrl: null,
       action: null,
     };
   },
-  social_media: (code) => {
+  social_media: async(code) => {
     // redirect to social media sharing
     console.log("Sharing on social media");
     return {
@@ -29,7 +29,7 @@ const taskFunctionsMap = {
       action: null,
     };
   },
-  location_sharing: (code) => {
+  location_sharing: async(code) => {
     // redirect to location sharing
     console.log("Sharing location");
     return {
@@ -56,6 +56,9 @@ exports.processPayment = async (amount, upiId) => {
 
 // Process QR Data
 exports.processQrScan = async (req, res) => {
+  // res.json({
+  //   message: "Processing QR Data",
+  // });
   const bountyCode = req.originalUrl.split("/").pop();
   const code = await Code.findOne({ code: bountyCode }).populate("campaign");
 
@@ -71,8 +74,9 @@ exports.processQrScan = async (req, res) => {
 
   const taskFunction = taskFunctionsMap[campaign.taskType];
   if (taskFunction) {
-    const metaData = taskFunction(code);
-    res.json({ campaign, ...metaData });
+    const metaData = await taskFunction(code);
+    console.log(metaData);
+    res.json({...metaData});
   } else {
     console.log(`Task type of  "${campaign.taskType}" not found`);
   }
@@ -101,6 +105,7 @@ exports.taskCompletion = async (req, res) => {
   // Update Customer Details
   const customer = await Customer.findOne({
     phone_number: phoneNo,
+    campaign_id: bountyCode.campaign._id,
   });
   let useCustomerId = null;
   if (customer) {

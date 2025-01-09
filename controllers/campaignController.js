@@ -398,30 +398,15 @@ exports.addBeneficiary = async (req, res) => {
 
   try {
     const campaign = await Campaign.findById(campaignId);
-    if (!campaign || campaign.user.toString() !== req.user.id) {
-      return res
-        .status(404)
-        .json({ message: "Campaign not found or access denied" });
-    }
 
-    const beneficiaryExists = campaign.beneficiaries.some(
-      (b) => b.beneficiaryMobile === mobileNumber
-    );
-
-    if (beneficiaryExists) {
-      return res
-        .status(400)
-        .json({ message: "Beneficiary already exists for this campaign." });
-    }
-
-    const beneFiciary = Beneficiary.create({
+    const beneFiciary = await Beneficiary.create({
       beneficiaryName: name,
       upiId: upiId,
       beneficiaryMobile: mobileNumber,
       beneficiaryEmail: email,
     });
 
-    campaign.beneficiaries.push(beneFiciary);
+    campaign.beneficiary = beneFiciary.id;
     await campaign.save();
 
     res.json({ message: "Beneficiary added successfully", campaign });
@@ -431,27 +416,5 @@ exports.addBeneficiary = async (req, res) => {
   }
 };
 
-exports.deleteBeneficiary = async (req, res) => {
-  const campaignId = req.params.campaignId;
-  const { mobileNumber } = req.body;
 
-  try {
-    const campaign = await Campaign.findById(campaignId);
-    if (!campaign || campaign.user.toString() !== req.user.id) {
-      return res
-        .status(404)
-        .json({ message: "Campaign not found or access denied" });
-    }
 
-    campaign.beneficiaries = campaign.beneficiaries.filter(
-      (b) => b.beneficiaryMobile !== mobileNumber
-    );
-
-    await campaign.save();
-
-    res.json({ message: "Beneficiary deleted successfully", campaign });
-  } catch (err) {
-    logger.error("Error in deleteBeneficiary:", err);
-    res.status(500).json({ message: "Server error", error: err.toString() });
-  }
-};

@@ -16,7 +16,9 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 exports.processQrData = async (req, res) => {
   const url = req.originalUrl;
   const codeData = url.split("/").pop();
-  res.send("QR Data processed successfully , Thank you for your time" + codeData);
+  res.send(
+    "QR Data processed successfully , Thank you for your time" + codeData
+  );
 };
 
 // Helper Functions
@@ -227,73 +229,63 @@ exports.registerCustomer = async (req, res) => {
   try {
     const {
       full_name,
+      upiId,
       phone_number,
-      payment_details,
-      company_id,
+      code,
       custom_fields,
       social_ids,
       docs,
-      campaign_id, // Optional field to tie registration to a campaign
     } = req.body;
-
+    console.log(req.body);
     // Validate required fields
     if (!full_name || !phone_number) {
       return res
         .status(400)
-        .json({ message: "full_name and phone_number are required" });
+        .json({ message: "Full name and phone number are required." });
     }
 
-    // Validate company_id if provided
-    let company = null;
-    if (company_id) {
-      if (!mongoose.Types.ObjectId.isValid(company_id)) {
-        return res.status(400).json({ message: "Invalid company ID" });
-      }
-
-      // Find the company
-      company = await Company.findById(company_id);
-      if (!company) {
-        return res.status(404).json({ message: "COMPANY NOT FOUND" });
-      }
+    // Check if code is provided and valid
+    if (!code) {
+      return res.status(400).json({ message: "Code is required." });
     }
 
-    // Validate campaign_id if provided
-    if (campaign_id) {
-      if (!mongoose.Types.ObjectId.isValid(campaign_id)) {
-        return res.status(400).json({ message: "Invalid campaign ID" });
-      }
-
-      const campaign = await Campaign.findById(campaign_id);
-
-      if (!campaign) {
-        return res.status(404).json({ message: "Campaign not found" });
-      }
-
-      // Validate required custom fields
-      const requiredFields =
-        campaign.customFieldConfig?.filter((f) => f.required) || [];
-
-      for (const field of requiredFields) {
-        if (!custom_fields || !custom_fields[field.fieldName]) {
-          return res
-            .status(400)
-            .json({ message: `Field ${field.fieldName} is required` });
-        }
-      }
+    const codeEntry = await Code.findOne({ code }).populate("campaign");
+    if (!codeEntry) {
+      return res.status(400).json({ message: "Invalid code." });
     }
 
+    if (codeEntry.isUsed) {
+      return res
+        .status(400)
+        .json({ message: "This code has already been used." });
+    }
+
+    const campaign = codeEntry.campaign;
+    if (!campaign) {
+      return res
+        .status(400)
+        .json({ message: "Invalid campaign associated with the code." });
+    }
+    console.log(campaign);
     // Check if customer already exists
-    let customer = await Customer.findOne({ phone_number });
+    let customer = await Customer.findOne({
+      phone_number,
+      company: campaign.company,
+    });
     if (customer) {
-      return res.status(400).json({ message: "Customer already registered" });
+      return res
+        .status(400)
+        .json({
+          message: "Customer with this phone number is already registered.",
+        });
     }
 
     // Create new customer
     customer = new Customer({
       full_name,
       phone_number,
-      payment_details,
-      company: company ? company._id : null,
+      payment_details: upiId,
+      company: campaign.company,
       custom_fields,
       social_ids,
       docs,
@@ -301,9 +293,15 @@ exports.registerCustomer = async (req, res) => {
 
     await customer.save();
 
-    res.status(201).json({ message: "Customer registered successfully" });
+    // Mark the code as used
+    codeEntry.isUsed = true;
+    codeEntry.usedBy = customer._id;
+    codeEntry.usedAt = new Date();
+    await codeEntry.save();
+
+    res.status(201).json({ message: "Customer registered successfully." });
   } catch (error) {
-    logger.error("Error in registerCustomer:", error);
+    console.log(error);
     res.status(500).json({ message: "Server error", error: error.toString() });
   }
 };

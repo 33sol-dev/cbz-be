@@ -168,6 +168,9 @@ app.use((err, req, res, _next) => {
   });
 });
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 // API Routes with specific middleware
 app.use("/auth", require("./routes/googleuser")); //Google SSO
@@ -177,6 +180,9 @@ app.use("/api/campaigns", verifyToken, require("./routes/campaigns")); // Assume
 app.use("/api/payments", verifyToken, require("./routes/payments")); // Payments might require enhanced security with tokens
 app.use("/api/code", require("./routes/codeRoute"));
 app.use("/external", require("./routes/external"));
+
+// Temporary Test Route
+app.use("/api/beneficiary", require("./routes/beneficiary"));
 
 // Error Handling Middleware
 const errorHandler = require("./middlewares/errorHandler");
