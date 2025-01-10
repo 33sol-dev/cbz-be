@@ -147,6 +147,72 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+app.get("/qrscan", (req, res) => {
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode && token === verifyToken) {
+    logger.info("Webhook verified successfully.");
+    res.status(200).send(challenge);
+  } else {
+    logger.warn("Webhook verification failed.");
+    res.status(403).send("Verification failed.");
+  }
+});
+
+app.post("/qrscan", express.json(), async (req, res) => {
+  try {
+    const { object, entry } = req.body;
+
+    // Check if the webhook is for WhatsApp messages
+    if (object === "whatsapp_business_account") {
+      entry.forEach((entryItem) => {
+        entryItem.changes.forEach((change) => {
+          if (change.field === "messages") {
+            const messages = change.value.messages;
+            const phoneNumberId = change.value.metadata.phone_number_id;
+
+            messages.forEach(async (message) => {
+              if (message.type === "text") {
+                const from = message.from; // Sender's phone number
+                const messageBody = message.text.body;
+
+                logger.info(`Received message from ${from}: ${messageBody}`);
+
+                // Respond to the sender (Optional)
+                await axios.post(
+                  `${process.env.WHATSAPP_API_URL}/messages`,
+                  {
+                    messaging_product: "whatsapp",
+                    to: from,
+                    text: {
+                      body: "Thanks for your message! We'll get back to you soon.",
+                    },
+                  },
+                  {
+                    headers: {
+                      Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+                logger.info(`Replied to ${from} successfully.`);
+              }
+            });
+          }
+        });
+      });
+    }
+    res.sendStatus(200);
+  } catch (error) {
+    logger.error("Error handling WhatsApp message:", error);
+    res.sendStatus(500);
+  }
+});
+
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // Enable preflight across the board
 
