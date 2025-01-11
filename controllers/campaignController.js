@@ -10,6 +10,13 @@ const { generateRandomPin } = require("../utils/pinGenerator"); // Function to g
 const Transaction = require("../models/Transaction");
 const Beneficiary = require("../models/Beneficiary");
 
+
+const urlMaps = {
+  "award": "https://wa.me/564066380115747/?text=",
+  "digital": "https://t.me/",
+  "video": "http://localhost:3000/video/",
+}
+
 exports.createCampaign = async (req, res) => {
   let {
     companyId,
@@ -18,8 +25,10 @@ exports.createCampaign = async (req, res) => {
     totalAmount,
     tags,
     triggerType,
+    beneficiary,
     numberOfCodes,
     qrStyle,
+    campaignType,
     logoUrl,
     reward_type,
     bounty_cashback_config,
@@ -139,6 +148,18 @@ exports.createCampaign = async (req, res) => {
         }
       }
     }
+    var id = null;
+    if(beneficiary){
+      const { beneficiaryName, beneficiaryMobile, beneficiaryEmail, upiId } = beneficiary;
+      const beneFiciary = await Beneficiary.create({
+        beneficiaryName: beneficiaryName,
+        upiId: upiId,
+        beneficiaryMobile: beneficiaryMobile,
+        beneficiaryEmail: beneficiaryEmail,
+      });
+      id = beneFiciary._id;
+    }
+
 
     const publishPin = generateRandomPin();
     logger.info(publishPin);
@@ -150,12 +171,13 @@ exports.createCampaign = async (req, res) => {
       description,
       totalAmount,
       tags,
+      beneficiary:id,
       status: "Pending",
       reward_type,
       bounty_cashback_config,
       customFieldConfig,
       triggerText,
-      publishPin: publishPin, // Generate and store the PIN
+      publishPin: publishPin,
     });
 
     // Generate default payoutConfig based on bounty_cashback_config
@@ -203,6 +225,7 @@ exports.createCampaign = async (req, res) => {
       // Enqueue the customer onboarding job with codes
       await customerOnboardingQueue.add("customerOnboarding", {
         companyId,
+
         campaignId: campaign._id,
         csvFilePath: req.file.path,
         userId: req.user.id,
@@ -214,6 +237,7 @@ exports.createCampaign = async (req, res) => {
         companyId,
         campaignId: campaign._id,
         codes,
+        taskUrl: urlMaps[campaignType],
         triggerText,
         mobileNumber,
         qrStyle,

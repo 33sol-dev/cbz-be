@@ -13,7 +13,7 @@ const qrCodeQueue = new Queue("qrCodeQueue", {
 // Process jobs in the queue
 qrCodeQueue.process("qrCodeGeneration",async (job, done) => {
   try {
-    const { companyId, campaignId, codes, qrStyle, logoUrl } = job.data;
+    const { companyId, campaignId, codes, qrStyle, logoUrl , taskUrl } = job.data;
     const campaign = await Campaign.findById(campaignId);
     const company = await Company.findById(companyId);
     if (!company) {
@@ -30,7 +30,7 @@ qrCodeQueue.process("qrCodeGeneration",async (job, done) => {
         code: code,
         company: companyId,
         campaign: campaignId,
-        url: process.env.FRONTEND_URL + "/qrtask/"+ code,
+        url: taskUrl + code,
       });
     });
     await Code.insertMany(qrCodes);

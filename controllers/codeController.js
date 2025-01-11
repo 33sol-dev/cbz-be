@@ -145,3 +145,10 @@ exports.taskCompletion = async (req, res) => {
 
   res.json({ message: "Task Completed" });
 };
+
+
+exports.getQrByCampaign = async (req, res) => {
+  const { campaignId } = req.body;
+  const codes = await Code.find({ campaign: campaignId });
+  res.json({ codes });
+};
