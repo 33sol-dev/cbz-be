@@ -26,7 +26,7 @@ module.exports = {
         repo: "git@github.com:33sol-dev/cbz-be.git", // Your GitHub repo
         path: "/home/ec2-user/cbz-be", // Deployment directory on the EC2 instance
         "pre-deploy-local": "",
-        "post-deploy": "npm install && pm2 reload /home/ec2-user/cbz-be/ecosystem.config.js --env production"
+        "post-deploy": "cd /home/ec2-user/cbz-be/current && npm install && pm2 reload ecosystem.config.js --env production"
       },
     },
   };
