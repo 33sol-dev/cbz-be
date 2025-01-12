@@ -1,4 +1,5 @@
 const Customer = require("../models/Customer");
+const { taskCompletion } = require("./codeController");
 
 
 
@@ -16,7 +17,13 @@ const handleIncomingMessage = async (req, res) => {
 
     if (user) {
       // Registered user: process rewards
-      const rewardResponse = await handleRewards(user);
+      const rewardResponse = await taskCompletion({
+        code: text,
+        name: user.full_name,
+        email: user.email,
+        phoneNo: user.phone_number,
+        upiId: user.upiId,
+      });
       await sendMessage(phoneNumber, rewardResponse.message);
       return res
         .status(200)
@@ -42,37 +49,33 @@ John Doe, john.doe@example.com, 1234567890@upi
   }
 };
 
-
-
-const WHATSAPP_API_URL = 'https://graph.facebook.com/v17.0/564066380115747/messages';
-const TOKEN = 'your_meta_access_token'; // Replace with your Meta access token
+const WHATSAPP_API_URL =
+  "https://graph.facebook.com/v17.0/564066380115747/messages";
+const TOKEN = "your_meta_access_token"; // Replace with your Meta access token
 
 const sendMessage = async (to, message) => {
   const payload = {
-    messaging_product: 'whatsapp',
+    messaging_product: "whatsapp",
     to,
     text: { body: message },
   };
 
   const response = await fetch(WHATSAPP_API_URL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${TOKEN}`,
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
-    throw new Error('Failed to send message.');
+    throw new Error("Failed to send message.");
   }
 
   return response.json();
 };
 
-
 module.exports = {
   handleIncomingMessage,
 };
-
-

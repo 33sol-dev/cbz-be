@@ -4,24 +4,22 @@ const Customer = require("../models/Customer");
 
 // You can add Different Task Functions as per the Added Task types in the Campaign
 const taskFunctionsMap = {
-  award: async(code) => {
-    // Redirect To URL to collect UPI Details
-    console.log("Redirecting to Award Page");
-    return {
-      redirectUrl: "http://localhost:3000/award",
-      action: null,
-    };
-  },
+  award: async (code) => {},
   digital_activation: async (code) => {
     // Sending Money To beneficiary
     const beneficiary = await Beneficiary.findById(code.campaign.beneficiary);
-    console.log("Sending Money to Beneficiary", beneficiary.beneficiaryName ," ", beneficiary.upiId);
+    console.log(
+      "Sending Money to Beneficiary",
+      beneficiary.beneficiaryName,
+      " ",
+      beneficiary.upiId
+    );
     return {
       redirectUrl: null,
       action: null,
     };
   },
-  social_media: async(code) => {
+  social_media: async (code) => {
     // redirect to social media sharing
     console.log("Sharing on social media");
     return {
@@ -29,7 +27,7 @@ const taskFunctionsMap = {
       action: null,
     };
   },
-  location_sharing: async(code) => {
+  location_sharing: async (code) => {
     // redirect to location sharing
     console.log("Sharing location");
     return {
@@ -76,15 +74,14 @@ exports.processQrScan = async (req, res) => {
   if (taskFunction) {
     const metaData = await taskFunction(code);
     console.log(metaData);
-    res.json({...metaData});
+    res.json({ ...metaData });
   } else {
     console.log(`Task type of  "${campaign.taskType}" not found`);
   }
 };
 
-exports.taskCompletion = async (req, res) => {
-  const { code, name, email, phoneNo, upiId } = req.body;
-
+// Task Completion
+const processTaskCompletion = async ({ code, name, email, phoneNo, upiId }) => {
   // Update Code Details
   const bountyCode = await Code.findOne({ code: code }).populate("campaign");
   if (!bountyCode) {
@@ -146,6 +143,10 @@ exports.taskCompletion = async (req, res) => {
   res.json({ message: "Task Completed" });
 };
 
+exports.taskCompletion = async (req, res) => {
+  const { code, name, email, phoneNo, upiId } = req.body;
+  processTaskCompletion({ code, name, email, phoneNo, upiId });
+};
 
 exports.getQrByCampaign = async (req, res) => {
   const { campaignId } = req.body;
