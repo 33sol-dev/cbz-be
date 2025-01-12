@@ -23,7 +23,7 @@ const taskFunctionsMap = {
     // redirect to social media sharing
     console.log("Sharing on social media");
     return {
-      redirectUrl: `http://localhost:3000/social/${code.code}`,
+      redirectUrl: `${process.env.FRONTEND_URL}/social/${code.code}`,
       action: null,
     };
   },
@@ -31,7 +31,7 @@ const taskFunctionsMap = {
     // redirect to location sharing
     console.log("Sharing location");
     return {
-      redirectUrl: `http://localhost:3000/location/${code.code}`,
+      redirectUrl: `${process.env.FRONTEND_URL}/location/${code.code}`,
       action: null,
     };
   },

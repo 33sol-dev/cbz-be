@@ -13,8 +13,7 @@ const Beneficiary = require("../models/Beneficiary");
 
 const urlMaps = {
   "award": "https://wa.me/564066380115747/?text=",
-  "digital": "https://t.me/",
-  "video": "http://localhost:3000/video/",
+  "video": `${process.env.FRONTEND_URL}/video/`,
 }
 
 exports.createCampaign = async (req, res) => {
