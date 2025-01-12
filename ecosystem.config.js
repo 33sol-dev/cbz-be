@@ -23,7 +23,7 @@ module.exports = {
         host: "ec2-54-85-108-171.compute-1.amazonaws.com", // EC2 instance public DNS
         key: "CBZ-BE.pem", // Path to your private SSH key
         ref: "origin/main",
-        repo: "git@github.com:33sol-ai/cbz-be.git", // Your GitHub repo
+        repo: "git@github.com:33sol-dev/cbz-be.git", // Your GitHub repo
         path: "/home/ec2-user/cbz-be", // Deployment directory on the EC2 instance
         "pre-deploy-local": "",
         "post-deploy": "npm install && pm2 reload /home/ec2-user/cbz-be/ecosystem.config.js --env production"
