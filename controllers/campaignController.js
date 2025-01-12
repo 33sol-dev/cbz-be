@@ -12,7 +12,7 @@ const Beneficiary = require("../models/Beneficiary");
 
 
 const urlMaps = {
-  "award": "https://wa.me/564066380115747/?text=",
+  "award": `${process.env.WHATSAPP_API_URL}?text=`,
   "video": `${process.env.FRONTEND_URL}/video/`,
 }
 

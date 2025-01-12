@@ -1,9 +1,7 @@
 const Customer = require("../models/Customer");
 const { taskCompletion } = require("./codeController");
 
-const WHATSAPP_API_URL =
-  "https://graph.facebook.com/v17.0/564066380115747/messages";
-const TOKEN = process.env.META_ACCESS_TOKEN; // Use environment variables for security
+const TOKEN = process.env.WHATSAPP_ACCESS_TOKEN; // Use environment variables for security
 
 // Handles incoming WhatsApp messages
 const handleIncomingMessage = async (req, res) => {
@@ -87,7 +85,7 @@ const sendMessage = async (to, message) => {
       text: { body: message },
     };
 
-    const response = await fetch(WHATSAPP_API_URL, {
+    const response = await fetch(process.env.WHATSAPP_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
