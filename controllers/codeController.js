@@ -84,6 +84,7 @@ exports.processQrScan = async (req, res) => {
 const processTaskCompletion = async ({ code, name, email, phoneNo, upiId }) => {
   // Update Code Details
   const bountyCode = await Code.findOne({ code: code }).populate("campaign");
+  const { campaign } = bountyCode;
   if (!bountyCode) {
     return res.json({ message: "Invalid Code" });
   }
@@ -91,12 +92,11 @@ const processTaskCompletion = async ({ code, name, email, phoneNo, upiId }) => {
     return res.json({ message: "Code Already Used" });
   }
   // Process Payment
-  const payment = await this.processPayment(
-    bountyCode.campaign.totalAmount,
-    upiId
-  );
-  if (!payment) {
-    return res.json({ message: "Payment Failed" });
+
+  if (campaign.taskType === "digital_activation") {
+    await processPayment(campaign.amount, campaign.beneficiary.upiId);
+  } else {
+    await processPayment(campaign.amount, upiId);
   }
 
   // Update Customer Details
