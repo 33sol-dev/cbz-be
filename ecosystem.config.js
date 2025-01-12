@@ -20,7 +20,7 @@ module.exports = {
     deploy: {
       production: {
         user: "ec2-user",
-        host: "ec2-54-85-108-171.compute-1.amazonaws.com", // EC2 instance public DNS
+        host: "ec2-44-211-205-51.compute-1.amazonaws.com", // EC2 instance public DNS
         key: "CBZ-BE.pem", // Path to your private SSH key
         ref: "origin/main",
         repo: "git@github.com:33sol-dev/cbz-be.git", // Your GitHub repo
