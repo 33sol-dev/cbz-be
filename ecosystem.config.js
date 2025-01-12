@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'api-server',
-      script: './app.js',
+      script: 'app.js',
       instances: 1,
       env: {
         NODE_ENV: 'production',
@@ -10,7 +10,7 @@ module.exports = {
     },
     {
       name: 'queue-worker',
-      script: './workers/queueWorker.js',
+      script: 'workers/queueWorker.js',
       instances: 1,
       env: {
         NODE_ENV: 'production',
