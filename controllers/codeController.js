@@ -81,7 +81,7 @@ exports.processQrScan = async (req, res) => {
 };
 
 // Task Completion
-const processTaskCompletion = async ({ code, name, email, phoneNo, upiId }) => {
+const processTaskCompletion = async ({ code, name, email, phone_number, upiId }) => {
   // Update Code Details
   const bountyCode = await Code.findOne({ code: code }).populate("campaign");
   const { campaign } = bountyCode;
@@ -101,7 +101,7 @@ const processTaskCompletion = async ({ code, name, email, phoneNo, upiId }) => {
 
   // Update Customer Details
   const customer = await Customer.findOne({
-    phone_number: phoneNo,
+    phone_number: phone_number,
     campaign_id: bountyCode.campaign._id,
   });
   let useCustomerId = null;
@@ -112,21 +112,21 @@ const processTaskCompletion = async ({ code, name, email, phoneNo, upiId }) => {
       details_user_shared: {
         name,
         email,
-        phoneNo,
+        phone_number,
       },
       money_they_received: bountyCode.campaign.amount,
     };
   } else {
     const newCustomer = new Customer({
       full_name: name,
-      phone_number: phoneNo,
+      phone_number: phone_number,
       email: email,
       last_campaign_details: {
         campaign_id: bountyCode.campaign._id,
         details_user_shared: {
           name,
           email,
-          phoneNo,
+          phone_number,
         },
         money_they_received: bountyCode.campaign.amount,
       },
@@ -144,8 +144,8 @@ const processTaskCompletion = async ({ code, name, email, phoneNo, upiId }) => {
 };
 
 exports.taskCompletion = async (req, res) => {
-  const { code, name, email, phoneNo, upiId } = req.body;
-  processTaskCompletion({ code, name, email, phoneNo, upiId });
+  const { code, name, email, phone_number, upiId } = req.body;
+  processTaskCompletion({ code, name, email, phone_number, upiId });
 };
 
 exports.getQrByCampaign = async (req, res) => {

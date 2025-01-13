@@ -119,9 +119,9 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-
+app.set('query parser', 'simple'); 
 app.use(limiter);
-
+app.set('trust proxy', 1);
 // Database Connection
 mongoose
   .connect(process.env.MONGODB_URI)
