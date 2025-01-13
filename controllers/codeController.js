@@ -83,6 +83,11 @@ exports.processQrScan = async (req, res) => {
 // Task Completion
 const processTaskCompletion = async ({ code, name, email, phone_number, upiId }) => {
   // Update Code Details
+};
+
+exports.taskCompletion = async (req, res) => {
+  const { code, name, email, phoneNo, upiId } = req.body;
+  
   const bountyCode = await Code.findOne({ code: code }).populate("campaign");
   const { campaign } = bountyCode;
   if (!bountyCode) {
@@ -141,11 +146,6 @@ const processTaskCompletion = async ({ code, name, email, phone_number, upiId })
   await bountyCode.save();
 
   res.json({ message: "Task Completed" });
-};
-
-exports.taskCompletion = async (req, res) => {
-  const { code, name, email, phone_number, upiId } = req.body;
-  processTaskCompletion({ code, name, email, phone_number, upiId });
 };
 
 exports.getQrByCampaign = async (req, res) => {
