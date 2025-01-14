@@ -47,16 +47,6 @@ const validateAndTrackMessageId = (id) => {
   return true;
 };
 
-// Utility function to send a message
-const sendMessageWithLogging = async (phoneNumber, message) => {
-  try {
-    console.log(`Sending message to ${phoneNumber}: ${message}`);
-    await sendMessage(phoneNumber, message);
-  } catch (error) {
-    console.error(`Failed to send message to ${phoneNumber}:`, error);
-  }
-};
-
 const handleIncomingMessage = async (req, res) => {
   try {
     const body = req.body;
@@ -111,8 +101,8 @@ const processData = async ({ phoneNumber, text }) => {
     const val = customerProcessState[phoneNumber];
     switch (val) {
       case "Enter Trigger Text":
-        const campaign = await Campaign.findOne({ triggerText: text });
-        if (!campaign) {
+        const campaignObj = await Campaign.findOne({ triggerText: text });
+        if (!campaignObj) {
           await sendMessage(
             phoneNumber,
             "Your text is not valid. Please provide a valid code to claim your rewards."
@@ -145,7 +135,10 @@ const processData = async ({ phoneNumber, text }) => {
         }
         break;
       case "Enter Name":
-        await new Customer({ phone_number: phoneNumber, full_name: text }).save();
+        await new Customer({
+          phone_number: phoneNumber,
+          full_name: text,
+        }).save();
         await sendMessage(phoneNumber, "Please provide Your UPI ID.");
         customerProcessState[phoneNumber] = "Enter UPI ID";
         break;
@@ -169,7 +162,7 @@ const processData = async ({ phoneNumber, text }) => {
         customerProcessState[phoneNumber] = "Enter Code";
         break;
       case "Enter Code":
-        const code = await Code.findOne({ code: text });
+        const code = await Code.findOne({ code: text }).populate("campaign");
         if (!code) {
           await sendMessage(
             phoneNumber,
@@ -184,7 +177,13 @@ const processData = async ({ phoneNumber, text }) => {
           );
           break;
         }
-        const claimer = await Customer.findOne({ phone_number:phoneNumber });
+        const claimer = await Customer.findOne({ phone_number: phoneNumber });
+        const { campaign } = code;
+        if (campaign.taskType === "digital_activation") {
+          await processPayment(campaign.totalAmount, campaign.beneficiary.upiId);
+        } else {
+          await processPayment(campaign.totalAmount, claimer.upiId);
+        }
         code.isUsed = true;
         code.claimer = claimer._id;
         await code.save();
@@ -195,7 +194,7 @@ const processData = async ({ phoneNumber, text }) => {
         delete customerProcessState[phoneNumber];
         break;
       default:
-        await sendMessage( phoneNumber, "Invalid state. Please try again." );
+        await sendMessage(phoneNumber, "Invalid state. Please try again.");
         break;
     }
   } else {
