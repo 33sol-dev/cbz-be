@@ -248,6 +248,7 @@ app.use("/api/campaigns", verifyToken, require("./routes/campaigns")); // Assume
 app.use("/api/payments", verifyToken, require("./routes/payments")); // Payments might require enhanced security with tokens
 app.use("/api/code", require("./routes/codeRoute"));
 app.use("/external", require("./routes/external"));
+app.use("/analytics",require("./routes/analytics"))
 
 // Temporary Test Route
 app.use("/api/beneficiary", require("./routes/beneficiary"));
