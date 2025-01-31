@@ -244,14 +244,11 @@ app.get("/", (req, res) => {
 app.use("/auth", require("./routes/googleuser")); //Google SSO
 //app.use('/api/users', require('./routes/users')); // Users might only need session check
 app.use("/api/companies", verifyToken, require("./routes/companies")); // Companies might require token validation
-app.use("/api/campaigns", verifyToken, require("./routes/campaigns")); // Assume default session check from global
+app.use("/api/campaigns",  require("./routes/campaigns")); // Assume default session check from global
 app.use("/api/payments", verifyToken, require("./routes/payments")); // Payments might require enhanced security with tokens
-app.use("/api/code", require("./routes/codeRoute"));
-app.use("/external", require("./routes/external"));
 app.use("/analytics",require("./routes/analytics"))
 
 // Temporary Test Route
-app.use("/api/beneficiary", require("./routes/beneficiary"));
 
 // Error Handling Middleware
 const errorHandler = require("./middlewares/errorHandler");

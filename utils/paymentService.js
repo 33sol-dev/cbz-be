@@ -1,13 +1,13 @@
 const axios = require('axios');
 const logger = require('./logger'); 
 // Function to initiate UPI payout via Cashfree
-async function initiateUPIPayout(upiId, amount, beneficiaryName) {
+async function initiateUPIPayout(upiId, amount, merchantName) {
   try {
       const response = await axios.post('https://api.cashfree.com/payout/transfers', {
-          beneficiary_details: {
-              beneficiary_name: beneficiaryName,
-              beneficiary_instrument_details: {
-                  vpa: upiId  // UPI ID of the beneficiary
+          merchant_details: {
+              merchant_name: merchantName,
+              merchant_instrument_details: {
+                  vpa: upiId  // UPI ID of the merchant
               }
           },
           transfer_mode: 'upi',

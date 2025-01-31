@@ -1,18 +1,17 @@
 const mongoose = require("mongoose");
 
-const BeneficiarySchema = new mongoose.Schema({
-  beneficiaryName: String,
-  beneficiaryMobile: String,
-  beneficiaryEmail: String,
-  upiId: String,
-  campaign: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Campaign",
-  },
-  company: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Company",
-  },
+const beneficiarySchema = new mongoose.Schema({
+  beneId: String,
+  name: String,
+  phone: String,
+  email: {
+    type: String,
+    default: "dummy@gmail.com",
+  }, // Dummy email as it's required
+  vpa: String, // UPI ID (Google Pay, PhonePe, Paytm, etc.)
+  address1: "N/A",
 });
 
-module.exports = mongoose.model("Beneficiary", BeneficiarySchema);
+module.exports =
+  mongoose.models["Beneficiary"] ||
+  mongoose.model("Beneficiary", beneficiarySchema);

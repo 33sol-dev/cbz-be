@@ -1,20 +1,10 @@
 const Campaign = require("../models/Campaign");
 const Code = require("../models/Code");
 const Customer = require("../models/Customer");
-const { taskCompletion, processPayment } = require("./codeController");
-const axios = require("axios");
-const TOKEN = process.env.WHATSAPP_ACCESS_TOKEN; // Use environment variables for security
+const { processPayment } = require("../utils/paymentService");
 
 const messageIdMap = {}; // Map to store message IDs for tracking
 const customerProcessState = {}; // Map to store customer process state
-
-// Customer Process
-// 1. Enter Trigger Text
-// 2. Find if the customer already exist
-// 3. If the customer exist ask the customer to enter the code
-// 4. If the customer does not exist ask the customer to enter The Name
-// 5. If the customer exist but does not have UPI ID ask the customer to enter the UPI ID
-// 6. Ask Customer to enter the code
 
 // Utility function for payload validation
 const validatePayload = (message) => {
@@ -180,7 +170,7 @@ const processData = async ({ phoneNumber, text }) => {
         const claimer = await Customer.findOne({ phone_number: phoneNumber });
         const { campaign } = code;
         if (campaign.taskType === "digital_activation") {
-          await processPayment(campaign.totalAmount, campaign.beneficiary.upiId);
+          await processPayment(campaign.totalAmount, campaign.merchant.upiId);
         } else {
           await processPayment(campaign.totalAmount, claimer.upiId);
         }
