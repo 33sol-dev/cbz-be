@@ -7,11 +7,11 @@ const MerchantSchema = new mongoose.Schema({
   merchantEmail: String,
   upiId: String,
   campaign: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.String,
     ref: "Campaign",
   },
   company: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.String,
     ref: "Company",
   },
   address: String,

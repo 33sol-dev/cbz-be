@@ -25,7 +25,7 @@ exports.getCampaignById = async (req, res) => {
     const { campaignId } = req.params;
     const campaign = await Campaign.findById(campaignId);
 
-    if (!campaign || campaign.user.toString() !== req.user.id) {
+    if (!campaign) {
       return res
         .status(404)
         .json({ message: "Campaign not found or access denied" });
