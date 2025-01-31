@@ -43,7 +43,7 @@ exports.getCampaignInsights = async (req, res) => {
 
   try {
     const campaign = await Campaign.findById(campaignId).populate("company");
-    if (!campaign || campaign.user.toString() !== req.user.id) {
+    if (!campaign) {
       return res
         .status(404)
         .json({ message: "Campaign not found or access denied" });
@@ -77,7 +77,7 @@ exports.publishCampaign = async (req, res) => {
 
   try {
     const campaign = await Campaign.findById(campaignId);
-    if (!campaign || campaign.user.toString() !== req.user.id) {
+    if (!campaign) {
       return res
         .status(404)
         .json({ message: "Campaign not found or access denied" });
@@ -113,7 +113,7 @@ exports.updatePayoutConfig = async (req, res) => {
 
   try {
     const campaign = await Campaign.findById(campaignId);
-    if (!campaign || campaign.user.toString() !== req.user.id) {
+    if (!campaign) {
       return res
         .status(404)
         .json({ message: "Campaign not found or access denied" });
@@ -137,7 +137,7 @@ exports.getCampaignSummary = async (req, res) => {
 
   try {
     const campaign = await Campaign.findById(campaignId);
-    if (!campaign || campaign.user.toString() !== req.user.id) {
+    if (!campaign) {
       return res
         .status(404)
         .json({ message: "Campaign not found or access denied" });
