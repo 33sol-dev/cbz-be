@@ -31,7 +31,6 @@ exports.generateCampaign = async (req, res) => {
       company,
       merchants,
       noOfSamples,
-      userId,
       triggerText,
       tags,
       publishPin,
@@ -41,6 +40,14 @@ exports.generateCampaign = async (req, res) => {
     if (!name || !totalAmount || !company) {
       return res.status(400).json({ message: "Missing required fields" });
     }
+
+    const companyData = await Company.findById(company);
+    if (!companyData) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+
+    const userId = companyData.user;
+
 
     let campaign;
 
