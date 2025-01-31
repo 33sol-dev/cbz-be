@@ -3,7 +3,7 @@ const router = express.Router();
 const externalController = require("../controllers/externalController");
 const { handleSampleRoute } = require("../controllers/sampleController");
 const { processTask } = require("../controllers/taskController");
-
+const mongoose = require("mongoose")
 // Existing routes...
 
 // Process Bounty Reward

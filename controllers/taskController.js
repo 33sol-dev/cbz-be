@@ -13,6 +13,7 @@ const CASHFREE_PAYOUT_URL = process.env.CASHFREE_PAYOUT_URL; // Base API URL
  */
 exports.processTask = async (req, res) => {
   try {
+    console.log(req.body);
     const { macAddress, merchantId, campaignId } = req.body;
 
     // Validate required fields
@@ -46,6 +47,8 @@ exports.processTask = async (req, res) => {
     if (campaign.rewardAmount > campaign.totalAmount) {
       return res.status(400).json({ message: "Insufficient campaign funds" });
     }
+
+    console.log("Sending Money To Merchant:", merchant.merchantName, merchant.merchantMobile, merchant.upiId);
 
     // Initiate Cashfree Transfer
     const transferResponse = await initiateCashfreePayout({

@@ -8,8 +8,15 @@ const logger = require("../utils/logger"); // Ensure logger utility is imported
  */
 exports.addMerchant = async (req, res) => {
   try {
-    const campaignId = req.params.campaignId;
-    const { merchantName, upiId, merchantMobile, merchantEmail, company, address } = req.body;
+    const {
+      merchantName,
+      upiId,
+      merchantMobile,
+      merchantEmail,
+      company,
+      address,
+      campaignId,
+    } = req.body;
 
     // Validate required fields
     if (!merchantName || !upiId || !merchantMobile || !campaignId || !company) {
@@ -48,9 +55,10 @@ exports.addMerchant = async (req, res) => {
  * Get all merchants of a campaign
  */
 exports.getMerchants = async (req, res) => {
+  console.log(req.params)
   try {
     const campaignId = req.params.campaignId;
-
+    
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(campaignId)) {
       return res.status(400).json({ message: "Invalid campaign ID" });
@@ -95,7 +103,15 @@ exports.getMerchant = async (req, res) => {
 exports.updateMerchant = async (req, res) => {
   try {
     const merchantId = req.params.merchantId;
-    const { merchantName, upiId, merchantMobile, merchantEmail, campaign, company, address } = req.body;
+    const {
+      merchantName,
+      upiId,
+      merchantMobile,
+      merchantEmail,
+      campaign,
+      company,
+      address,
+    } = req.body;
 
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(merchantId)) {
@@ -104,7 +120,15 @@ exports.updateMerchant = async (req, res) => {
 
     const merchant = await Merchant.findByIdAndUpdate(
       merchantId,
-      { merchantName, upiId, merchantMobile, merchantEmail, campaign, company, address },
+      {
+        merchantName,
+        upiId,
+        merchantMobile,
+        merchantEmail,
+        campaign,
+        company,
+        address,
+      },
       { new: true }
     );
 
@@ -116,7 +140,9 @@ exports.updateMerchant = async (req, res) => {
     merchant.qrLink = `${process.env.FRONTEND_URL}/qr?campaign=${merchant.campaign}&merchant=${merchant._id}`;
     await merchant.save();
 
-    res.status(200).json({ message: "Merchant updated successfully", merchant });
+    res
+      .status(200)
+      .json({ message: "Merchant updated successfully", merchant });
   } catch (err) {
     logger.error("Error in updateMerchant:", err);
     res.status(500).json({ message: "Server error", error: err.toString() });
@@ -156,8 +182,13 @@ exports.assignMerchantToCampaign = async (req, res) => {
     const { merchantId, newCampaignId } = req.body;
 
     // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(merchantId) || !mongoose.Types.ObjectId.isValid(newCampaignId)) {
-      return res.status(400).json({ message: "Invalid merchant or campaign ID" });
+    if (
+      !mongoose.Types.ObjectId.isValid(merchantId) ||
+      !mongoose.Types.ObjectId.isValid(newCampaignId)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid merchant or campaign ID" });
     }
 
     // Check if the new campaign exists
@@ -186,7 +217,12 @@ exports.assignMerchantToCampaign = async (req, res) => {
     newMerchant.qrLink = `${process.env.FRONTEND_URL}/qr?campaign=${newCampaignId}&merchant=${newMerchant._id}`;
     await newMerchant.save();
 
-    res.status(200).json({ message: "Merchant assigned to new campaign successfully", merchant: newMerchant });
+    res
+      .status(200)
+      .json({
+        message: "Merchant assigned to new campaign successfully",
+        merchant: newMerchant,
+      });
   } catch (err) {
     logger.error("Error in assignMerchantToCampaign:", err);
     res.status(500).json({ message: "Server error", error: err.toString() });
