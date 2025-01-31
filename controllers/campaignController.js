@@ -8,8 +8,8 @@ const Merchant = require("../models/Merchant");
 
 exports.getCampaigns = async (req, res) => {
   try {
-    logger.info("Fetching campaigns for user ID:", req.user);
-    const campaigns = await Campaign.find({ user: req.user.id }).populate(
+    logger.info("Fetching campaigns for user ID:", req.query);
+    const campaigns = await Campaign.find({ user: req.query.user }).populate(
       "company"
     );
     logger.info("Found campaigns:", campaigns);

@@ -38,7 +38,7 @@ exports.generateCampaign = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!name || !totalAmount || !company || !userId) {
+    if (!name || !totalAmount || !company) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
