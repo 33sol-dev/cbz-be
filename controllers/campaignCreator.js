@@ -47,7 +47,7 @@ exports.generateCampaign = async (req, res) => {
       return res.status(404).json({ message: "Company not found" });
     }
 
-    const userId = companyData.user;
+    const userId = companyData.companyId;
 
     let campaign;
 
@@ -63,6 +63,7 @@ exports.generateCampaign = async (req, res) => {
         merchants,
         tags,
         publishPin,
+        userId
       });
     } else if (campaignTemplate === "product") {
       if (!triggerText)
@@ -80,6 +81,7 @@ exports.generateCampaign = async (req, res) => {
         triggerText,
         tags,
         publishPin,
+        userId
       });
     } else if (campaignTemplate === "sampleGiveAway") {
       campaign = await generateSampleGiveAwayCampaign({
@@ -93,6 +95,7 @@ exports.generateCampaign = async (req, res) => {
         merchants,
         tags,
         publishPin,
+        userId
       });
     } else {
       return res.status(400).json({ message: "Invalid campaign template" });
