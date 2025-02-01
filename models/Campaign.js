@@ -17,6 +17,7 @@ const CampaignSchema = new mongoose.Schema({
   },
   tags: [{ type: String }],
   createdAt: { type: Date, default: Date.now },
+  triggerText: { type: String },
   updatedAt: { type: Date, default: Date.now },
   publishPin: { type: String },
 });

@@ -1,10 +1,13 @@
 const Campaign = require("../models/Campaign");
 const Code = require("../models/Code");
 const Customer = require("../models/Customer");
-const { processPayment } = require("../utils/paymentService");
 
 const messageIdMap = {}; // Map to store message IDs for tracking
 const customerProcessState = {}; // Map to store customer process state
+
+const processPayment = async (amount, upiId) => {
+  console.log("Processing payment of", amount, "to", upiId);
+};
 
 // Utility function for payload validation
 const validatePayload = (message) => {
@@ -86,44 +89,55 @@ const handleIncomingMessage = async (req, res) => {
   }
 };
 
+const processFirstMessage = async ({ phoneNumber, text }) => {
+  const claimer = await Customer.findOne({ phone_number: phoneNumber });
+  if (!claimer) {
+    await sendMessage(
+      phoneNumber,
+      "Please provide your name to claim your rewards."
+    );
+    customerProcessState[phoneNumber] = "Enter Name";
+  } else {
+    if (!claimer.upiId) {
+      await sendMessage(
+        phoneNumber,
+        "Please provide your UPI ID to claim your rewards."
+      );
+      customerProcessState[phoneNumber] = "Enter UPI ID";
+      return;
+    } else {
+      const code = await Code.findOne({ code: text }).populate("campaign");
+      if (!code) {
+        await sendMessage(
+          phoneNumber,
+          "Your code is not valid. Please provide a valid code to claim your rewards."
+        );
+        return;
+      }
+      if (code.isUsed) {
+        await sendMessage(
+          phoneNumber,
+          "This code is already claimed. Please provide a new code to claim your rewards."
+        );
+        return;
+      }
+      const { campaign } = code;
+      await processPayment(campaign.rewardAmount, claimer.upiId);
+      code.isUsed = true;
+      code.claimer = claimer._id;
+      await code.save();
+      await sendMessage(
+        phoneNumber,
+        "Your code is successfully claimed. Please provide the task completion proof."
+      );
+    }
+  }
+};
+
 const processData = async ({ phoneNumber, text }) => {
   if (customerProcessState[phoneNumber]) {
     const val = customerProcessState[phoneNumber];
     switch (val) {
-      case "Enter Trigger Text":
-        const campaignObj = await Campaign.findOne({ triggerText: text });
-        if (!campaignObj) {
-          await sendMessage(
-            phoneNumber,
-            "Your text is not valid. Please provide a valid code to claim your rewards."
-          );
-          break;
-        }
-        const customer = await Customer.findOne({ phone_number: phoneNumber });
-        if (customer) {
-          if (!customer.upiId) {
-            await sendMessage(
-              phoneNumber,
-              "Please provide your UPI ID to claim your rewards."
-            );
-            customerProcessState[phoneNumber] = "Enter UPI ID";
-            break;
-          } else {
-            await sendMessage(
-              phoneNumber,
-              "Please provide the code to claim your rewards."
-            );
-            customerProcessState[phoneNumber] = "Enter Code";
-            break;
-          }
-        } else {
-          await sendMessage(
-            phoneNumber,
-            "Please provide your name to claim your rewards."
-          );
-          customerProcessState[phoneNumber] = "Enter Name";
-        }
-        break;
       case "Enter Name":
         await new Customer({
           phone_number: phoneNumber,
@@ -170,9 +184,9 @@ const processData = async ({ phoneNumber, text }) => {
         const claimer = await Customer.findOne({ phone_number: phoneNumber });
         const { campaign } = code;
         if (campaign.taskType === "digital_activation") {
-          await processPayment(campaign.totalAmount, campaign.merchant.upiId);
+          await processPayment(campaign.rewardAmount, campaign.merchant.upiId);
         } else {
-          await processPayment(campaign.totalAmount, claimer.upiId);
+          await processPayment(campaign.rewardAmount, claimer.upiId);
         }
         code.isUsed = true;
         code.claimer = claimer._id;
@@ -188,11 +202,7 @@ const processData = async ({ phoneNumber, text }) => {
         break;
     }
   } else {
-    customerProcessState[phoneNumber] = "Enter Trigger Text";
-    await sendMessage(
-      phoneNumber,
-      "Please provide the trigger text to claim your rewards."
-    );
+    await processFirstMessage({ phoneNumber, text });
   }
 };
 
@@ -280,4 +290,5 @@ const sendMessage = async (
 
 module.exports = {
   handleIncomingMessage,
+  sendMessage,
 };

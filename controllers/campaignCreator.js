@@ -9,6 +9,7 @@ const Campaign = require("../models/Campaign");
 const Code = require("../models/Code");
 const qrCodeQueue = require("../queues/qrCodeQueue");
 const { generateRandomPin } = require("../utils/pinGenerator");
+const Company = require("../models/Company");
 
 const templateToLinkMap = {
   video_watching: "https://www.youtube.com/watch?v=6v2L2UGZJAM",
@@ -35,12 +36,11 @@ exports.generateCampaign = async (req, res) => {
       tags,
       publishPin,
     } = req.body;
-
+    console.log(req.body);
     // Validate required fields
     if (!name || !totalAmount || !company) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-
     const companyData = await Company.findById(company);
     if (!companyData) {
       return res.status(404).json({ message: "Company not found" });
@@ -178,6 +178,7 @@ const generateProductCampaign = async ({
     status: "Pending",
     totalAmount,
     rewardAmount,
+    triggerText,
     campaignTemplate,
     company,
     publishPin: publishPin || generateRandomPin(),
