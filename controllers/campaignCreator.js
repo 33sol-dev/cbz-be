@@ -38,7 +38,7 @@ exports.generateCampaign = async (req, res) => {
     
     const publishPin = generateRandomPin();
     // Validate required fields
-    if (!name || !totalAmount || !company) {
+    if (!name || !totalAmount ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
