@@ -122,17 +122,19 @@ const generateTaskCampaign = async ({
   merchants,
   tags,
   publishPin,
+  userId
 }) => {
   const campaign = await Campaign.create({
     name,
     description,
-    status: "Pending",
+    status: "Ready",
     totalAmount,
     rewardAmount,
     campaignTemplate,
     company,
     publishPin: publishPin || generateRandomPin(),
     tags,
+    user: userId,
   });
 
   campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaign/register-merchant/campaign=${campaign.id}&company=${company}`;
@@ -185,6 +187,7 @@ const generateProductCampaign = async ({
     company,
     publishPin: publishPin || generateRandomPin(),
     tags,
+    
   });
 
   const codes = new Set();
@@ -236,7 +239,7 @@ const generateSampleGiveAwayCampaign = async ({
   const campaign = await Campaign.create({
     name,
     description,
-    status: "Pending",
+    status: "Ready",
     totalAmount,
     rewardAmount,
     campaignTemplate,
