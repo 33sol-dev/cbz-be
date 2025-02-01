@@ -251,6 +251,7 @@ app.use("/analytics",require("./routes/analytics"))
 app.use("/api/merchant", require("./routes/merchant"));
 // Temporary Test Route
 // app.use("/api/merchant", require("./routes/merchant"));
+app.use("/api/code", require("./routes/codeRoute"));
 
 // Error Handling Middleware
 const errorHandler = require("./middlewares/errorHandler");

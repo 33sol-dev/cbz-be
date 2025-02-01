@@ -9,7 +9,7 @@ const Merchant = require("../models/Merchant");
 exports.getCampaigns = async (req, res) => {
   try {
     logger.info("Fetching campaigns for user ID:", req.query);
-    const campaigns = await Campaign.find({ user: req.query.user }).populate(
+    const campaigns = await Campaign.find({ company: req.query.companyId }).populate(
       "company"
     );
     logger.info("Found campaigns:", campaigns);
@@ -25,7 +25,7 @@ exports.getCampaignById = async (req, res) => {
     const { campaignId } = req.params;
     const campaign = await Campaign.findById(campaignId);
 
-    if (!campaign || campaign.user.toString() !== req.user.id) {
+    if (!campaign) {
       return res
         .status(404)
         .json({ message: "Campaign not found or access denied" });
