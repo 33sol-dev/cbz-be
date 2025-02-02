@@ -32,6 +32,7 @@ exports.generateCampaign = async (req, res) => {
       company,
       merchants,
       triggerText,
+      taskUrl,
       tags,
     } = req.body;
     console.log(req.body);
@@ -60,6 +61,7 @@ exports.generateCampaign = async (req, res) => {
         campaignTemplate,
         company,
         merchants,
+        taskUrl,
         tags,
         publishPin,
         userId
@@ -90,6 +92,7 @@ exports.generateCampaign = async (req, res) => {
         campaignTemplate,
         company,
         merchants,
+        taskUrl,
         tags,
         publishPin,
         userId
@@ -117,6 +120,7 @@ const generateTaskCampaign = async ({
   campaignTemplate,
   company,
   merchants,
+  taskUrl,
   tags,
   publishPin,
   userId
@@ -126,6 +130,7 @@ const generateTaskCampaign = async ({
     description,
     status: "Ready",
     totalAmount,
+    taskUrl,
     rewardAmount,
     campaignTemplate,
     company,
@@ -228,12 +233,14 @@ const generateSampleGiveAwayCampaign = async ({
   campaignTemplate,
   company,
   merchants,
+  taskUrl,
   tags,
   publishPin,
 }) => {
   const campaign = await Campaign.create({
     name,
     description,
+    taskUrl,
     status: "Ready",
     campaignTemplate,
     company,

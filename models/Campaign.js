@@ -10,6 +10,7 @@ const CampaignSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
   noOfSamples: { type: Number },
   merchantRegistrationLink: { type: String },
+  taskUrl: { type: String },
   status: {
     type: String,
     enum: ["Pending", "Processing", "Ready", "Active", "Completed"],

@@ -40,8 +40,9 @@ exports.addMerchant = async (req, res) => {
       address,
     });
 
+
     // Generate QR Link with Campaign and Merchant ID
-    merchant.qrLink = `${process.env.FRONTEND_URL}/qr?campaign=${campaignId}&merchant=${merchant._id}`;
+    merchant.qrLink = `${process.env.TASK_URL}?campaign=${campaignId}&merchant=${merchant._id}`;
     await merchant.save();
 
     res.status(201).json({ message: "Merchant added successfully", merchant });
@@ -137,7 +138,7 @@ exports.updateMerchant = async (req, res) => {
     }
 
     // Regenerate QR Link after update
-    merchant.qrLink = `${process.env.FRONTEND_URL}/qr?campaign=${merchant.campaign}&merchant=${merchant._id}`;
+    merchant.qrLink = `${process.env.TASK_URL}?campaign=${merchant.campaign}&merchant=${merchant._id}`;
     await merchant.save();
 
     res
@@ -214,7 +215,7 @@ exports.assignMerchantToCampaign = async (req, res) => {
     });
 
     // Generate a new QR Link for this campaign
-    newMerchant.qrLink = `${process.env.FRONTEND_URL}/qr?campaign=${newCampaignId}&merchant=${newMerchant._id}`;
+    newMerchant.qrLink = `${process.env.TASK_URL}?campaign=${newCampaignId}&merchant=${newMerchant._id}`;
     await newMerchant.save();
 
     res
