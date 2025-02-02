@@ -31,7 +31,6 @@ exports.generateCampaign = async (req, res) => {
       campaignTemplate,
       company,
       merchants,
-      noOfSamples,
       triggerText,
       tags,
     } = req.body;
@@ -39,7 +38,7 @@ exports.generateCampaign = async (req, res) => {
     
     const publishPin = generateRandomPin();
     // Validate required fields
-    if (!name || !totalAmount ) {
+    if (!name || !company ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
     const companyData = await Company.findById(company);
@@ -83,14 +82,12 @@ exports.generateCampaign = async (req, res) => {
         publishPin,
         userId
       });
-    } else if (campaignTemplate === "sampleGiveAway") {
+    } else if (campaignTemplate === "sample") {
+      console.log("sample");
       campaign = await generateSampleGiveAwayCampaign({
         name,
         description,
-        totalAmount,
-        rewardAmount,
         campaignTemplate,
-        noOfSamples,
         company,
         merchants,
         tags,
@@ -214,7 +211,7 @@ const generateProductCampaign = async ({
     campaignId: campaign.id,
     codes: generatedCodes,
     triggerText: triggerText,
-    taskUrl: process.env.WHATSAPP_REDIRECT_URL + "/",
+    taskUrl: process.env.WHATSAPP_REDIRECT_URL,
     mobileNumber: "0000000000", // Placeholder (should be fetched dynamically if needed)
     userId: userId,
   });
@@ -228,10 +225,7 @@ const generateProductCampaign = async ({
 const generateSampleGiveAwayCampaign = async ({
   name,
   description,
-  totalAmount,
-  rewardAmount,
   campaignTemplate,
-  noOfSamples,
   company,
   merchants,
   tags,
@@ -241,12 +235,9 @@ const generateSampleGiveAwayCampaign = async ({
     name,
     description,
     status: "Ready",
-    totalAmount,
-    rewardAmount,
     campaignTemplate,
     company,
     publishPin: publishPin || generateRandomPin(),
-    noOfSamples,
     tags,
   });
 
@@ -264,8 +255,8 @@ const generateSampleGiveAwayCampaign = async ({
           campaign: campaign.id,
           company: company,
           address: merchant.address,
-          qrLink: `${process.env.FRONTEND_URL}/qr/${merchant.id}`,
         });
+        merchantObj.qrLink = `${process.env.TASK_URL}?merchant=${merchantObj.id}&campaign=${campaign.id}`;
         await merchantObj.save();
       })
     );

@@ -3,6 +3,8 @@ const axios = require("axios");
 const logger = require("../utils/logger");
 const { sendMessage } = require("./webhookController");
 
+const MESSAGE_TEMPLATE =
+  "Hey Thank you for your interest in our product. Here is your unique sample code, use it to get your free sample: ";
 
 /**
  * Generate a unique sample code that is not in the database
@@ -24,16 +26,16 @@ const generateUniqueSampleCode = async () => {
  */
 const handleSampleRoute = async (req, res) => {
   try {
-    const { viewerNumber, viewerMacAddress, merchantId, campaignId } = req.body;
+    const { viewerNumber, macAddress, merchantId, campaignId } = req.body;
 
     // Validate request fields
-    if (!viewerNumber || !viewerMacAddress || !merchantId || !campaignId) {
+    if (!viewerNumber || !macAddress || !merchantId || !campaignId) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     // Check if the viewer already exists for this campaign
     const existingSample = await SampleCode.findOne({
-      macAddress: viewerMacAddress,
+      macAddress: macAddress,
       campaign: campaignId,
     });
 
@@ -46,23 +48,21 @@ const handleSampleRoute = async (req, res) => {
 
     // Save the viewer in the SampleCode schema
     const newSampleCode = new SampleCode({
-      macAddress: viewerMacAddress,
+      macAddress: macAddress,
       merchant: merchantId,
       campaign: campaignId,
+      samplerMobile: viewerNumber,
       code,
     });
 
     await newSampleCode.save();
 
     // Send WhatsApp message with the code
-    const whatsappResponse = await sendMessage(viewerNumber, code);
+    await sendMessage(
+      viewerNumber,
+      MESSAGE_TEMPLATE + code
+    );
 
-    if (!whatsappResponse.success) {
-      return res.status(500).json({
-        message: "Failed to send WhatsApp message",
-        error: whatsappResponse.error,
-      });
-    }
 
     return res.status(200).json({
       message: "Viewer added successfully",
@@ -70,10 +70,11 @@ const handleSampleRoute = async (req, res) => {
     });
   } catch (err) {
     logger.error("Error in handleSampleRoute:", err);
-    return res.status(500).json({ message: "Server error", error: err.toString() });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.toString() });
   }
 };
-
 
 module.exports = {
   handleSampleRoute,
