@@ -48,7 +48,7 @@ exports.processTask = async (req, res) => {
       return res.status(400).json({ message: "Insufficient campaign funds" });
     }
 
-    console.log("Sending Money To Merchant:", merchant.merchantName, merchant.merchantMobile, merchant.upiId);
+    console.log("Sending Money To Merchant:", merchant.merchantName, merchant.merchantMobile, merchant.upiId, campaign.rewardAmount);
 
     // Initiate Cashfree Transfer
     const transferResponse = await initiateCashfreePayout({
