@@ -5,7 +5,8 @@ const User = require('../models/User');
 require('../middlewares/passport-setup');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const logger = require("../utils/logger")
+const logger = require("../utils/logger");
+const { token } = require('morgan');
 
 /**
  * @swagger
@@ -102,7 +103,7 @@ router.get('/google/callback',
             username: req.user.username, // Username or any other user fields
             isLoggedIn: true
         };
-
+        res.json({ message: 'User authenticated successfully', token: req.user.token });
         res.redirect('/dashboard'); // Redirect to a dashboard or other internal page
     }
 );
