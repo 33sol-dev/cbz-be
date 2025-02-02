@@ -36,10 +36,10 @@ exports.generateCampaign = async (req, res) => {
       tags,
     } = req.body;
     console.log(req.body);
-    
+
     const publishPin = generateRandomPin();
     // Validate required fields
-    if (!name || !company ) {
+    if (!name || !company) {
       return res.status(400).json({ message: "Missing required fields" });
     }
     const companyData = await Company.findById(company);
@@ -64,7 +64,7 @@ exports.generateCampaign = async (req, res) => {
         taskUrl,
         tags,
         publishPin,
-        userId
+        userId,
       });
     } else if (campaignTemplate === "product") {
       if (!triggerText)
@@ -82,7 +82,7 @@ exports.generateCampaign = async (req, res) => {
         triggerText,
         tags,
         publishPin,
-        userId
+        userId,
       });
     } else if (campaignTemplate === "sample") {
       console.log("sample");
@@ -95,7 +95,7 @@ exports.generateCampaign = async (req, res) => {
         taskUrl,
         tags,
         publishPin,
-        userId
+        userId,
       });
     } else {
       return res.status(400).json({ message: "Invalid campaign template" });
@@ -123,7 +123,7 @@ const generateTaskCampaign = async ({
   taskUrl,
   tags,
   publishPin,
-  userId
+  userId,
 }) => {
   const campaign = await Campaign.create({
     name,
@@ -145,7 +145,7 @@ const generateTaskCampaign = async ({
   if (merchants && merchants.length > 0) {
     await Promise.all(
       merchants.map(async (merchant) => {
-        const merchantObj =  await Merchant.create({
+        const merchantObj = await Merchant.create({
           merchantName: merchant.name,
           upiId: merchant.upiId,
           merchantMobile: merchant.mobileNumber,
@@ -153,8 +153,7 @@ const generateTaskCampaign = async ({
           campaign: campaign.id,
           company: company,
           address: merchant.address,
-          qrLink:
-            templateToLinkMap[campaignTemplate] || process.env.FRONTEND_URL,
+          qrLink: `${process.env.TASK_URL}?merchant=${merchantObj.id}&campaign=${campaign.id}`,
         });
         await merchantObj.save();
       })
@@ -190,7 +189,6 @@ const generateProductCampaign = async ({
     company,
     publishPin: publishPin || generateRandomPin(),
     tags,
-    
   });
 
   const codes = new Set();
