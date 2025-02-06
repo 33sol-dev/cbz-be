@@ -9,7 +9,7 @@ const getQrByCampaign = async (req, res) => {
   res.json({ codes });
 };
 
-router.post("/get-campaign-qr", getQrByCampaign);
+router.post("/get-campaign-codes", getQrByCampaign);
 
 
 module.exports = router;
