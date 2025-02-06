@@ -11,13 +11,6 @@ const qrCodeQueue = require("../queues/qrCodeQueue");
 const { generateRandomPin } = require("../utils/pinGenerator");
 const Company = require("../models/Company");
 
-const templateToLinkMap = {
-  video_watching: "https://www.youtube.com/watch?v=6v2L2UGZJAM",
-  location_sharing: "https://www.google.com/maps",
-  digital_activation: "https://www.google.com",
-  social_media: "https://www.facebook.com",
-};
-
 /**
  * Generate a campaign based on the template type
  */

@@ -83,7 +83,7 @@ exports.publishCampaign = async (req, res) => {
         .json({ message: "Campaign not found or access denied" });
     }
 
-    if (campaign.status !== "Ready") {
+    if (campaign.status === "Pending") {
       return res
         .status(400)
         .json({ message: "Campaign is not ready to be published." });
