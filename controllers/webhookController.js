@@ -1,294 +1,136 @@
 const Campaign = require("../models/Campaign");
 const Code = require("../models/Code");
 const Customer = require("../models/Customer");
+const { initiateUPIPayout } = require("../utils/paymentService");
 
-const messageIdMap = {}; // Map to store message IDs for tracking
-const customerProcessState = {}; // Map to store customer process state
+const messageIdMap = {}; // Track processed messages
+const customerProcessState = {}; // Track customer states
 
 const processPayment = async (amount, upiId) => {
   console.log("Processing payment of", amount, "to", upiId);
 };
 
-// Utility function for payload validation
+// Validate incoming message payload
 const validatePayload = (message) => {
-  if (
-    !message.entry ||
-    !Array.isArray(message.entry) ||
-    message.entry.length === 0
-  )
-    return false;
+  if (!message.entry || !Array.isArray(message.entry) || message.entry.length === 0) return false;
   const entry = message.entry[0];
-  if (
-    !entry.changes ||
-    !Array.isArray(entry.changes) ||
-    entry.changes.length === 0
-  )
-    return false;
+  if (!entry.changes || !Array.isArray(entry.changes) || entry.changes.length === 0) return false;
   const changes = entry.changes[0];
   if (!changes || changes.field !== "messages") return false;
   const value = changes.value;
-  if (!value || !Array.isArray(value.messages) || value.messages.length === 0)
-    return false;
+  if (!value || !Array.isArray(value.messages) || value.messages.length === 0) return false;
   return true;
 };
 
-// Utility function to validate and track message IDs
+// Validate and track message ID to prevent duplicate processing
 const validateAndTrackMessageId = (id) => {
   if (!id || messageIdMap[id]) return false;
   messageIdMap[id] = true;
-  setTimeout(() => delete messageIdMap[id], 1 * 60 * 60 * 1000); // Remove message ID after 5 minutes
+  setTimeout(() => delete messageIdMap[id], 60 * 60 * 1000); // Remove after 1 hour
   return true;
 };
 
 const handleIncomingMessage = async (req, res) => {
   try {
     const body = req.body;
-    // Validate payload
     if (!validatePayload(body)) {
-      return res
-        .status(200)
-        .send({ error: "Invalid or incomplete webhook payload." });
+      return res.status(200).json({ action: "ignore", reason: "Invalid payload" });
     }
 
     const messageObj = body.entry[0].changes[0].value.messages[0];
     const messageId = messageObj.id;
 
-    // Validate and track message ID
     if (!validateAndTrackMessageId(messageId)) {
-      return res
-        .status(200)
-        .send({ error: "Message already processed or invalid." });
-    }
-
-    const entry = body?.entry?.[0];
-    const changes = entry?.changes?.[0];
-    const value = changes?.value;
-
-    if (value?.statuses) {
-      // Ignore status updates and respond with success
-      console.log("Ignoring status update:", value.statuses);
-      return res.status(200).send({ message: "Status update ignored." });
+      return res.status(200).json({ action: "ignore", reason: "Duplicate message" });
     }
 
     const from = messageObj.from;
     const text = messageObj.text?.body?.trim();
-
     if (!from || !text) {
-      return res
-        .status(200)
-        .send({ error: "Message content missing or invalid." });
+      return res.status(200).json({ action: "ignore", reason: "Missing message content" });
     }
 
     const phoneNumber = from.split("@")[0];
     console.log(`Received message from ${phoneNumber}: ${text}`);
-    await processData({ phoneNumber, text });
-    res.status(200).send({ message: "Message processed successfully." });
-  } catch (error) {
-    console.error("Error handling incoming message:", error);
-    return res.status(200).send("Internal server error.");
-  }
-};
 
-const processFirstMessage = async ({ phoneNumber, text }) => {
-  const claimer = await Customer.findOne({ phone_number: phoneNumber });
-  if (!claimer) {
-    await sendMessage(
-      phoneNumber,
-      "Please provide your name to claim your rewards."
-    );
-    customerProcessState[phoneNumber] = "Enter Name";
-  } else {
-    if (!claimer.upiId) {
-      await sendMessage(
-        phoneNumber,
-        "Please provide your UPI ID to claim your rewards."
-      );
-      customerProcessState[phoneNumber] = "Enter UPI ID";
-      return;
-    } else {
-      const code = await Code.findOne({ code: text }).populate("campaign");
-      if (!code) {
-        await sendMessage(
-          phoneNumber,
-          "Your code is not valid. Please provide a valid code to claim your rewards."
-        );
-        return;
-      }
-      if (code.isUsed) {
-        await sendMessage(
-          phoneNumber,
-          "This code is already claimed. Please provide a new code to claim your rewards."
-        );
-        return;
-      }
-      const { campaign } = code;
-      await processPayment(campaign.rewardAmount, claimer.upiId);
-      code.isUsed = true;
-      code.claimer = claimer._id;
-      await code.save();
-      await sendMessage(
-        phoneNumber,
-        "Your code is successfully claimed. Please provide the task completion proof."
-      );
-    }
+    const response = await processData({ phoneNumber, text });
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error handling message:", error);
+    res.status(200).json({ action: "error", reason: "Internal server error" });
   }
 };
 
 const processData = async ({ phoneNumber, text }) => {
   if (customerProcessState[phoneNumber]) {
-    const val = customerProcessState[phoneNumber];
-    switch (val) {
-      case "Enter Name":
-        await new Customer({
-          phone_number: phoneNumber,
-          full_name: text,
-        }).save();
-        await sendMessage(phoneNumber, "Please provide Your UPI ID.");
-        customerProcessState[phoneNumber] = "Enter UPI ID";
-        break;
-      case "Enter UPI ID":
-        const customerObj = await Customer.findOne({
-          phone_number: phoneNumber,
-        });
-        if (!customerObj) {
-          await sendMessage(
-            phoneNumber,
-            "Your phone number is not valid. Please provide a valid phone number to claim your rewards."
-          );
-          break;
-        }
-        customerObj.upiId = text;
-        await customerObj.save();
-        await sendMessage(
-          phoneNumber,
-          "Please provide the code to claim your rewards."
-        );
-        customerProcessState[phoneNumber] = "Enter Code";
-        break;
-      case "Enter Code":
-        const code = await Code.findOne({ code: text }).populate("campaign");
-        if (!code) {
-          await sendMessage(
-            phoneNumber,
-            "Your code is not valid. Please provide a valid code to claim your rewards."
-          );
-          break;
-        }
-        if (code.isUsed) {
-          await sendMessage(
-            phoneNumber,
-            "This code is already claimed. Please provide a new code to claim your rewards."
-          );
-          break;
-        }
-        const claimer = await Customer.findOne({ phone_number: phoneNumber });
-        const { campaign } = code;
-        if (campaign.taskType === "digital_activation") {
-          await processPayment(campaign.rewardAmount, campaign.merchant.upiId);
-        } else {
-          await processPayment(campaign.rewardAmount, claimer.upiId);
-        }
-        code.isUsed = true;
-        code.claimer = claimer._id;
-        await code.save();
-        await sendMessage(
-          phoneNumber,
-          "Your code is successfully claimed. Please provide the task completion proof."
-        );
-        delete customerProcessState[phoneNumber];
-        break;
-      default:
-        await sendMessage(phoneNumber, "Invalid state. Please try again.");
-        break;
-    }
+    return await handleCustomerState(phoneNumber, text);
   } else {
-    await processFirstMessage({ phoneNumber, text });
+    return await processFirstMessage(phoneNumber, text);
   }
 };
 
-module.exports = handleIncomingMessage;
-
-console.log(process.env.WHATSAPP_API_URL, process.env.WHATSAPP_ACCESS_TOKEN);
-// Sends a message via WhatsApp API
-
-const sendMessage = async (
-  to,
-  message,
-  messageType = "text",
-  templateName = null,
-  languageCode = "en_US"
-) => {
-  try {
-    // Ensure environment variables are set
-    if (!process.env.WHATSAPP_API_URL || !process.env.WHATSAPP_ACCESS_TOKEN) {
-      throw new Error(
-        "WhatsApp API URL or token is not defined in environment variables."
-      );
+const processFirstMessage = async (phoneNumber, text) => {
+  const claimer = await Customer.findOne({ phone_number: phoneNumber });
+  if (!claimer) {
+    customerProcessState[phoneNumber] = "Enter Name";
+    return { action: "request_input", message: "Please provide your name to claim your rewards." };
+  } else {
+    if (!claimer.upiId) {
+      customerProcessState[phoneNumber] = "Enter UPI ID";
+      return { action: "request_input", message: "Please provide your UPI ID to claim your rewards." };
     }
-
-    // Construct the payload based on message type
-    let payload;
-    if (messageType === "text") {
-      payload = {
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to, // WhatsApp number including country code, e.g., 16315551181
-        type: "text",
-        text: { body: message },
-      };
-    } else if (messageType === "template") {
-      if (!templateName) {
-        throw new Error(
-          "Template name is required for sending template messages."
-        );
-      }
-      payload = {
-        messaging_product: "whatsapp",
-        to, // WhatsApp number including country code, e.g., 16315551181
-        type: "template",
-        template: {
-          name: templateName,
-          language: {
-            code: languageCode,
-          },
-        },
-      };
-    } else {
-      throw new Error(
-        "Unsupported message type. Only 'text' and 'template' are supported."
-      );
-    }
-
-    // Send the request to the WhatsApp API
-    const response = await fetch(process.env.WHATSAPP_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    // Handle API response
-    if (!response.ok) {
-      const errorResponse = await response.json();
-      console.error("Failed to send message:", errorResponse);
-      throw new Error(
-        `Failed to send message: ${errorResponse.message || "Unknown error"}`
-      );
-    }
-
-    // Parse and return the API response
-    const data = await response.json();
-    console.log("Message sent successfully:", data);
-    return data;
-  } catch (error) {
-    console.error("Error in sendMessage:", error);
-    throw error;
+    return await verifyAndProcessCode(phoneNumber, text, claimer);
   }
 };
 
-module.exports = {
-  handleIncomingMessage,
-  sendMessage,
+const handleCustomerState = async (phoneNumber, text) => {
+  const state = customerProcessState[phoneNumber];
+
+  if (state === "Enter Name") {
+    await Customer.create({ phone_number: phoneNumber, full_name: text });
+    customerProcessState[phoneNumber] = "Enter UPI ID";
+    return { action: "request_input", message: "Please provide Your UPI ID." };
+  }
+
+  if (state === "Enter UPI ID") {
+    const customerObj = await Customer.findOne({ phone_number: phoneNumber });
+    if (!customerObj) {
+      return { action: "error", message: "Invalid phone number. Please try again." };
+    }
+    customerObj.upiId = text;
+    await customerObj.save();
+    customerProcessState[phoneNumber] = "Enter Code";
+    return { action: "request_input", message: "Please provide the code to claim your rewards." };
+  }
+
+  if (state === "Enter Code") {
+    const claimer = await Customer.findOne({ phone_number: phoneNumber });
+    return await verifyAndProcessCode(phoneNumber, text, claimer);
+  }
+
+  return { action: "error", message: "Invalid state. Please try again." };
 };
+
+const verifyAndProcessCode = async (phoneNumber, text, claimer) => {
+  const code = await Code.findOne({ code: text }).populate("campaign");
+  if (!code) {
+    return { action: "error", message: "Invalid code. Please provide a valid code." };
+  }
+  if (code.isUsed) {
+    return { action: "error", message: "Code already claimed. Please use a new code." };
+  }
+
+  const { campaign } = code;
+  const recipientUpi = campaign.taskType === "digital_activation" ? campaign.merchant.upiId : claimer.upiId;
+  await processPayment(campaign.rewardAmount, recipientUpi);
+  initiateUPIPayout(recipientUpi,rewardAmount,campaign.merchant.merchantName)
+
+  code.isUsed = true;
+  code.claimer = claimer._id;
+  await code.save();
+
+  delete customerProcessState[phoneNumber];
+  return { action: "request_proof", message: "Code successfully claimed. Please provide task completion proof." };
+};
+
+module.exports = {handleIncomingMessage};
