@@ -25,6 +25,7 @@ exports.generateCampaign = async (req, res) => {
       company,
       merchants,
       triggerText,
+      taskType,
       taskUrl,
       tags,
     } = req.body;
@@ -45,13 +46,14 @@ exports.generateCampaign = async (req, res) => {
     let campaign;
 
     // Handle different campaign templates
-    if (campaignTemplate === "task") {
+    if (campaignTemplate === "award") {
       campaign = await generateTaskCampaign({
         name,
         description,
         totalAmount,
         rewardAmount,
         campaignTemplate,
+        taskType,
         company,
         merchants,
         taskUrl,
@@ -72,13 +74,14 @@ exports.generateCampaign = async (req, res) => {
         campaignTemplate,
         company,
         userId,
+        taskType,
         triggerText,
         tags,
         publishPin,
         userId,
       });
-    } else if (campaignTemplate === "sample") {
-      console.log("sample");
+    } else if (campaignTemplate === "digital_activation") {
+      console.log("digital_activation");
       campaign = await generateSampleGiveAwayCampaign({
         name,
         description,
@@ -86,6 +89,7 @@ exports.generateCampaign = async (req, res) => {
         company,
         merchants,
         taskUrl,
+        taskType,
         tags,
         publishPin,
         userId,
@@ -114,6 +118,7 @@ const generateTaskCampaign = async ({
   company,
   merchants,
   taskUrl,
+  taskType,
   tags,
   publishPin,
   userId,
@@ -125,6 +130,7 @@ const generateTaskCampaign = async ({
     totalAmount,
     taskUrl,
     rewardAmount,
+    taskType,
     campaignTemplate,
     company,
     publishPin: publishPin || generateRandomPin(),
@@ -162,6 +168,7 @@ const generateTaskCampaign = async ({
 const generateProductCampaign = async ({
   name,
   description,
+  taskType,
   totalAmount,
   rewardAmount,
   campaignTemplate,
@@ -175,6 +182,7 @@ const generateProductCampaign = async ({
     name,
     description,
     status: "Pending",
+    taskType,
     totalAmount,
     rewardAmount,
     triggerText,
@@ -223,12 +231,14 @@ const generateSampleGiveAwayCampaign = async ({
   description,
   campaignTemplate,
   company,
+  taskType,
   merchants,
   taskUrl,
   tags,
   publishPin,
 }) => {
   const campaign = await Campaign.create({
+    taskType,
     name,
     description,
     taskUrl,

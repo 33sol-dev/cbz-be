@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { name } = require("../queues/qrCodeQueue");
 
 const CampaignSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -10,6 +9,7 @@ const CampaignSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
   noOfSamples: { type: Number },
   merchantRegistrationLink: { type: String },
+  taskType: { type: String },
   taskUrl: { type: String },
   status: {
     type: String,

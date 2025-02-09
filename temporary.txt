@@ -1,0 +1,7 @@
+Task
+campaign name
+company id
+campaignTemplate = "Task"
+
+
+

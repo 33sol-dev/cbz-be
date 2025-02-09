@@ -114,50 +114,7 @@ router.get(
     res.redirect("/dashboard"); // Redirect to a dashboard or other internal page
   }
 );
-/**
- * @swagger
- * auth/signup:
- *   post:
- *     summary: Register a new user
- *     tags:
- *       - Auth
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - email
- *               - password
- *             properties:
- *               name:
- *                 type: string
- *                 example: JohnDoe
- *               mobileNumber:
- *                 type: string
- *                 example: "918779780352"
- *               typeOfUser:
- *                 type: string
- *                 enum: [brand-admin, customer]
- *                 example: brand-admin
- *               upiId:
- *                 type: string
- *                 example: john@upi
- *               companyId:
- *                 type: string
- *                 example: "60f7c0b5d4d3c81234567890"
- *     responses:
- *       201:
- *         description: User registered successfully
- *       400:
- *         description: Bad request
- *       500:
- *         description: Server error
- */
-// Local Signup Route
+
 router.post("/signup", async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
@@ -195,36 +152,6 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /auth/login:
- *   post:
- *     summary: User login
- *     tags:
- *       - Auth
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               phoneNumber:
- *                 type: string
- *                 example: "918779780352"
- *     responses:
- *       200:
- *         description: Login successful
- *       400:
- *         description: Bad request
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
- */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {

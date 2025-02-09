@@ -15,10 +15,10 @@ const handleTask = async (req, res) => {
   if (!campaign) {
     return res.json({ message: "Invalid Campaign" });
   }
-  if(campaign.campaignTemplate == "task"){
+  if(campaign.campaignTemplate == "award"){
     console.log("Processing Task");
     await processTask(req, res);
-  }else if(campaign.campaignTemplate == "sample"){
+  }else if(campaign.campaignTemplate == "digital_activation"){
     console.log("Processing Sample");
     await handleSampleRoute(req, res);
   }
