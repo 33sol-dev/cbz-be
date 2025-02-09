@@ -56,6 +56,7 @@ exports.generateCampaign = async (req, res) => {
         rewardAmount,
         campaignTemplate,
         taskType,
+        triggerText,
         company,
         merchants,
         taskUrl,
@@ -93,6 +94,7 @@ exports.generateCampaign = async (req, res) => {
         company,
         merchants,
         taskUrl,
+        triggerText,
         taskType,
         tags,
         publishPin,
@@ -122,6 +124,7 @@ const generateTaskCampaign = async ({
   campaignTemplate,
   company,
   merchants,
+  triggerText,
   taskUrl,
   taskType,
   tags,
@@ -135,6 +138,7 @@ const generateTaskCampaign = async ({
     status: "Ready",
     totalAmount,
     taskUrl,
+    triggerText,
     rewardAmount,
     taskType,
     campaignTemplate,
@@ -145,7 +149,7 @@ const generateTaskCampaign = async ({
     triggerText,
   });
 
-  campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaign/register-merchant/campaign=${campaign.id}&company=${company}`;
+  campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaigns/register-merchant?campaign=${campaign.id}&company=${company}`;
   await campaign.save();
 
   if (merchants && merchants.length > 0) {
@@ -235,6 +239,7 @@ const generateProductCampaign = async ({
 const generateSampleGiveAwayCampaign = async ({
   name,
   description,
+  triggerText,
   campaignTemplate,
   company,
   taskType,
@@ -249,6 +254,7 @@ const generateSampleGiveAwayCampaign = async ({
     taskType,
     name,
     description,
+    triggerText,
     taskUrl,
     status: "Ready",
     campaignTemplate,
@@ -258,7 +264,7 @@ const generateSampleGiveAwayCampaign = async ({
     triggerText,
   });
 
-  campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaign/register-merchant/campaign=${campaign.id}&company=${company}`;
+  campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaigns/register-merchant?campaign=${campaign.id}&company=${company}`;
   await campaign.save();
   console.log("Campaign Creation Syccessful");
   if (merchants && merchants.length > 0) {
