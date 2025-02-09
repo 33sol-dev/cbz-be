@@ -2,6 +2,50 @@ const Merchant = require("../models/Merchant");
 const Campaign = require("../models/Campaign");
 const mongoose = require("mongoose");
 const logger = require("../utils/logger"); // Ensure logger utility is imported
+const { generateUniqueCode } = require("../utils/generateUniqueCode");
+const Code = require("../models/Code");
+
+exports.generateMerchantObject = async ({
+  merchantName,
+  upiId,
+  merchantMobile,
+  merchantEmail,
+  company,
+  address,
+  campaignId,
+  campaignTemplate
+}) => {
+  try {
+    const codeString = await generateUniqueCode();
+    let merchant = await Merchant.create({
+      merchantName,
+      upiId,
+      merchantMobile,
+      merchantEmail,
+      campaign: campaignId,
+      company,
+      address,
+    });
+    
+    const merchantCode = await Code.create({
+      code: codeString,
+      company:company,
+      campaign: campaignId,
+      campaignTemplate:campaignTemplate,
+      merchant: merchant._id,
+    });
+    await merchantCode.save();
+    
+    merchant.qrLink = `${process.env.TASK_URL}?campaign=${campaignId}&merchant=${merchant._id}`;
+    merchant.merchantCode = merchantCode.id;
+    await merchant.save();
+    return merchant;
+  } catch (err) {
+    logger.error("Error generating merchant object");
+    console.log(err)
+    throw new Error("Failed to generate merchant object");
+  }
+};
 
 /**
  * Add a new merchant to a campaign (Allows same merchant in multiple campaigns)
@@ -18,32 +62,25 @@ exports.addMerchant = async (req, res) => {
       campaignId,
     } = req.body;
 
-    // Validate required fields
     if (!merchantName || !upiId || !merchantMobile || !campaignId || !company) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Check if the campaign exists
     const campaign = await Campaign.findById(campaignId);
     if (!campaign) {
       return res.status(404).json({ message: "Campaign not found" });
     }
 
-    // Create a new merchant entry for this campaign
-    let merchant = await Merchant.create({
+    const merchant = await exports.generateMerchantObject({
       merchantName,
       upiId,
       merchantMobile,
       merchantEmail,
-      campaign: campaignId,
       company,
+      campaignTemplate: campaign.campaignTemplate,
       address,
+      campaignId,
     });
-
-
-    // Generate QR Link with Campaign and Merchant ID
-    merchant.qrLink = `${process.env.TASK_URL}?campaign=${campaignId}&merchant=${merchant._id}`;
-    await merchant.save();
 
     res.status(201).json({ message: "Merchant added successfully", merchant });
   } catch (err) {
@@ -56,10 +93,10 @@ exports.addMerchant = async (req, res) => {
  * Get all merchants of a campaign
  */
 exports.getMerchants = async (req, res) => {
-  console.log(req.params)
+  console.log(req.params);
   try {
     const campaignId = req.params.campaignId;
-    
+
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(campaignId)) {
       return res.status(400).json({ message: "Invalid campaign ID" });
@@ -218,12 +255,10 @@ exports.assignMerchantToCampaign = async (req, res) => {
     newMerchant.qrLink = `${process.env.TASK_URL}?campaign=${newCampaignId}&merchant=${newMerchant._id}`;
     await newMerchant.save();
 
-    res
-      .status(200)
-      .json({
-        message: "Merchant assigned to new campaign successfully",
-        merchant: newMerchant,
-      });
+    res.status(200).json({
+      message: "Merchant assigned to new campaign successfully",
+      merchant: newMerchant,
+    });
   } catch (err) {
     logger.error("Error in assignMerchantToCampaign:", err);
     res.status(500).json({ message: "Server error", error: err.toString() });

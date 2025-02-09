@@ -4,7 +4,6 @@ const SampleCodeSchema = new mongoose.Schema(
   {
     macAddress: {
       type: String,
-      required: true,
     },
     campaign: {
       type: mongoose.Schema.Types.ObjectId,

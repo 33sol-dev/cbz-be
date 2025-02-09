@@ -1,4 +1,5 @@
 const SampleCode = require("../models/SampleCode");
+const { generateUniqueCode } = require("../utils/generateUniqueCode");
 const logger = require("../utils/logger");
 const { sendMessage } = require("./webhookController");
 
@@ -8,17 +9,6 @@ const MESSAGE_TEMPLATE =
 /**
  * Generate a unique sample code that is not in the database
  */
-const generateUniqueSampleCode = async () => {
-  let code;
-  let exists = true;
-
-  while (exists) {
-    code = "BOUNTY" + Math.floor(100000 + Math.random() * 900000); // 6-digit number
-    exists = await SampleCode.exists({ code });
-  }
-
-  return code;
-};
 
 /**
  * Handle sample request and send code via WhatsApp
@@ -43,7 +33,7 @@ const handleSampleRoute = async (req, res) => {
     }
 
     // Generate a new unique sample code
-    const code = await generateUniqueSampleCode();
+    const code = await generateUniqueCode();
 
     // Save the viewer in the SampleCode schema
     const newSampleCode = new SampleCode({

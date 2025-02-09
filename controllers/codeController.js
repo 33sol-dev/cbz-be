@@ -1,140 +1,118 @@
+const Merchant = require("../models/Merchant");
+const Campaign = require("../models/Campaign");
 const Code = require("../models/Code");
 const Customer = require("../models/Customer");
+const SampleCode = require("../models/SampleCode");
+const Transaction = require("../models/Transaction");
+const logger = require("../utils/logger");
+const { generateUniqueCode } = require("../utils/generateUniqueCode");
+const { initiateUPIPayout } = require("../utils/paymentService");
 
-// You can add Different Task Functions as per the Added Task types in the Campaign
-const taskFunctionsMap = {
-  award: async (code) => {},
-  digital_activation: async (code) => {
-    // Sending Money To beneficiary
-    const beneficiary = await Beneficiary.findById(code.campaign.beneficiary);
-    console.log(
-      "Sending Money to Beneficiary",
-      beneficiary.beneficiaryName,
-      " ",
-      beneficiary.upiId
+const validateUnique = async (campaign, customer) => {
+  const transaction = await Transaction.findOne({ campaign, customer });
+  return !transaction;
+};
+
+const processProduct = async (codeObj, customer) => {
+  const campaign = await Campaign.findById(codeObj.campaign);
+  if (!campaign) throw new Error("Campaign not found");
+
+  const { upiId, full_name } = customer;
+  codeObj.isUsed = true;
+  codeObj.usedBy = customer._id;
+  codeObj.usedAt = new Date();
+  await codeObj.save();
+
+  await initiateUPIPayout(upiId, campaign.rewardAmount, full_name);
+  return { message: "Reward Processed Successfully" };
+};
+
+const processAward = async (codeObj, customer) => {
+  const merchant = await Merchant.findById(codeObj.merchant);
+  const campaign = await Campaign.findById(codeObj.campaign);
+  if (!merchant || !campaign) throw new Error("Invalid campaign or merchant");
+
+  if (await validateUnique(campaign.id, customer.id)) {
+    await initiateUPIPayout(
+      merchant.upiId,
+      campaign.rewardAmount,
+      merchant.merchantName
     );
-    return {
-      redirectUrl: null,
-      action: null,
-    };
-  },
-  social_media: async (code) => {
-    // redirect to social media sharing
-    console.log("Sharing on social media");
-    return {
-      redirectUrl: `${process.env.FRONTEND_URL}/social/${code.code}`,
-      action: null,
-    };
-  },
-  location_sharing: async (code) => {
-    // redirect to location sharing
-    console.log("Sharing location");
-    return {
-      redirectUrl: `${process.env.FRONTEND_URL}/location/${code.code}`,
-      action: null,
-    };
-  },
-};
-
-
-// Process QR Data
-exports.processQrScan = async (req, res) => {
-  // res.json({
-  //   message: "Processing QR Data",
-  // });
-  const bountyCode = req.originalUrl.split("/").pop();
-  const code = await Code.findOne({ code: bountyCode }).populate("campaign");
-
-  if (!code) {
-    return res.json({ message: "Invalid Code" });
-  }
-
-  if (code.isUsed) {
-    return res.json({ message: "Code Already Used" });
-  }
-
-  const { campaign } = code;
-
-  const taskFunction = taskFunctionsMap[campaign.taskType];
-  if (taskFunction) {
-    const metaData = await taskFunction(code);
-    console.log(metaData);
-    res.json({ ...metaData });
-  } else {
-    console.log(`Task type of  "${campaign.taskType}" not found`);
-  }
-};
-
-// Task Completion
-const processTaskCompletion = async ({ code, name, email, phone_number, upiId }) => {
-  // Update Code Details
-};
-
-exports.taskCompletion = async (req, res) => {
-  const { code, name, email, phoneNo, upiId } = req.body;
-  
-  const bountyCode = await Code.findOne({ code: code }).populate("campaign");
-  const { campaign } = bountyCode;
-  if (!bountyCode) {
-    return res.json({ message: "Invalid Code" });
-  }
-  if (bountyCode.isUsed) {
-    return res.json({ message: "Code Already Used" });
-  }
-  // Process Payment
-
-  if (campaign.taskType === "digital_activation") {
-    await processPayment(campaign.amount, campaign.beneficiary.upiId);
-  } else {
-    await processPayment(campaign.amount, upiId);
-  }
-
-  // Update Customer Details
-  const customer = await Customer.findOne({
-    phone_number: phone_number,
-    campaign_id: bountyCode.campaign._id,
-  });
-  let useCustomerId = null;
-  if (customer) {
-    useCustomerId = customer._id;
-    customer.last_campaign_details = {
-      campaign_id: bountyCode.campaign._id,
-      details_user_shared: {
-        name,
-        email,
-        phone_number,
-      },
-      money_they_received: bountyCode.campaign.amount,
-    };
-  } else {
-    const newCustomer = new Customer({
-      full_name: name,
-      phone_number: phone_number,
-      email: email,
-      last_campaign_details: {
-        campaign_id: bountyCode.campaign._id,
-        details_user_shared: {
-          name,
-          email,
-          phone_number,
-        },
-        money_they_received: bountyCode.campaign.amount,
-      },
+    await Transaction.create({
+      company:campaign.company,
+      campaign: campaign.id,
+      customer: customer._id,
+      status: "SUCCESS",
     });
-    useCustomerId = newCustomer._id;
-    await newCustomer.save();
+    return { message: "Task Processed Successfully" };
   }
+  return { message: "You are not eligible for this campaign" };
+};
 
-  bountyCode.isUsed = true;
-  bountyCode.usedBy = useCustomerId;
-  bountyCode.usedAt = new Date();
-  await bountyCode.save();
+const processSample = async (codeObj, customer) => {
+  if (await validateUnique(codeObj.campaign, customer.id)) {
+    const uniqueCode = await generateUniqueCode();
+    const campaignData = await Campaign.findById(codeObj.campaign)
+    const transaction = await Transaction.create({
+      company:campaignData.company,
+      campaign: codeObj.campaign,
+      customer: customer._id,
+      status: "SUCCESS",
+    });
+    await transaction.save()
+    const uniqueCodeObj = await SampleCode.create({
+      samplerMobile: customer.phone_number,
+      campaign: codeObj.campaign,
+      code: uniqueCode,
+      merchant: codeObj.merchant,
+    });
+    await uniqueCodeObj.save();
+    return { message: `Sample Code Generated Successfully - ${uniqueCode}` };
+  }
+  return { message: "You are not eligible for this sample" };
+};
 
-  res.json({ message: "Task Completed" });
+const campaignConfig = {
+  award: processAward,
+  digital_activation: processSample,
+  product: processProduct,
+};
+
+exports.processQrScan = async (req, res) => {
+  try {
+    const { number, text } = req.body;
+    const code = text.substring(text.length - 12);
+    const customer = await Customer.findOne({ phone_number: number });
+
+    if (!customer) return res.json({ message: "Customer Does Not Exist" });
+
+    const codeObj = await Code.findOne({ code }).populate("campaign");
+    if (!codeObj) return res.json({ message: "Code is Not Valid" });
+    if (codeObj.isUsed)
+      return res.json({ message: "Code Has Been Already Used" });
+
+    const campaignTemplate = codeObj.campaign.campaignTemplate;
+    if (campaignConfig[campaignTemplate]) {
+      const response = await campaignConfig[campaignTemplate](
+        codeObj,
+        customer
+      );
+      return res.json(response);
+    }
+    res.json({ message: "Invalid Campaign Type" });
+  } catch (err) {
+    logger.error("Error in processQrScan:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
+  }
 };
 
 exports.getQrByCampaign = async (req, res) => {
-  const { campaignId } = req.body;
-  const codes = await Code.find({ campaign: campaignId });
-  res.json({ codes });
+  try {
+    const { campaignId } = req.body;
+    const codes = await Code.find({ campaign: campaignId });
+    res.json({ codes });
+  } catch (err) {
+    logger.error("Error in getQrByCampaign:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
+  }
 };

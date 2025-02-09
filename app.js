@@ -163,7 +163,6 @@ app.get("/qrscan", (req, res) => {
   }
 });
 
-app.use("/webhook",require("./routes/webhook"))
 
 app.post("/qrscan", express.json(), async (req, res) => {
   try {

@@ -224,6 +224,29 @@ exports.processBountyReward = async (req, res) => {
   }
 };
 
+exports.createCustomer = async (req, res) => {
+  try {
+    const { full_name, phone_number, upiId } = req.body;
+
+    if (!full_name || !phone_number || !upiId) {
+      throw new Error("Missing Required Fields");
+    }
+
+    const customer = await Customer.create({
+      ...req.body,
+    });
+
+    await customer.save();
+    res.json({
+      message:"Customer Created Successfully"
+    })
+  } catch (err) {
+    res.json({
+      message: "failed to create customer",
+    });
+  }
+};
+
 // Register Customer
 exports.registerCustomer = async (req, res) => {
   try {
@@ -273,11 +296,9 @@ exports.registerCustomer = async (req, res) => {
       company: campaign.company,
     });
     if (customer) {
-      return res
-        .status(400)
-        .json({
-          message: "Customer with this phone number is already registered.",
-        });
+      return res.status(400).json({
+        message: "Customer with this phone number is already registered.",
+      });
     }
 
     // Create new customer

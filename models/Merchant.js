@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const { add } = require("../queues/qrCodeQueue");
 
 const MerchantSchema = new mongoose.Schema({
   merchantName: String,
   merchantMobile: String,
   merchantEmail: String,
   upiId: String,
+  merchantCode: String,
   campaign: {
     type: mongoose.Schema.Types.String,
     ref: "Campaign",
@@ -19,5 +19,4 @@ const MerchantSchema = new mongoose.Schema({
 });
 
 module.exports =
-  mongoose.models["Merchant"] ||
-  mongoose.model("Merchant", MerchantSchema);
+  mongoose.models["Merchant"] || mongoose.model("Merchant", MerchantSchema);

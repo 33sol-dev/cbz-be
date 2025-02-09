@@ -10,6 +10,7 @@ const Code = require("../models/Code");
 const qrCodeQueue = require("../queues/qrCodeQueue");
 const { generateRandomPin } = require("../utils/pinGenerator");
 const Company = require("../models/Company");
+const { generateMerchantObject } = require("./merchantController");
 
 /**
  * Generate a campaign based on the template type
@@ -144,17 +145,16 @@ const generateTaskCampaign = async ({
   if (merchants && merchants.length > 0) {
     await Promise.all(
       merchants.map(async (merchant) => {
-        const merchantObj = await Merchant.create({
+        await generateMerchantObject({
           merchantName: merchant.name,
           upiId: merchant.upiId,
           merchantMobile: merchant.mobileNumber,
-          merchantEmail: merchant.email,
-          campaign: campaign.id,
-          company: company,
+          merchantEmail:merchant.email,
+          company,
+          campaignTemplate: campaign.campaignTemplate,
           address: merchant.address,
-          qrLink: `${process.env.TASK_URL}?merchant=${merchantObj.id}&campaign=${campaign.id}`,
+          campaignId: campaign.id,
         });
-        await merchantObj.save();
       })
     );
   }
@@ -237,6 +237,7 @@ const generateSampleGiveAwayCampaign = async ({
   tags,
   publishPin,
 }) => {
+  console.log(`Creating Campaign for ${campaignTemplate} ${company}`)
   const campaign = await Campaign.create({
     taskType,
     name,
@@ -251,21 +252,20 @@ const generateSampleGiveAwayCampaign = async ({
 
   campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaign/register-merchant/campaign=${campaign.id}&company=${company}`;
   await campaign.save();
-
+  console.log("Campaign Creation Syccessful")
   if (merchants && merchants.length > 0) {
     await Promise.all(
       merchants.map(async (merchant) => {
-        const merchantObj = await Merchant.create({
+        await generateMerchantObject({
           merchantName: merchant.name,
           upiId: merchant.upiId,
           merchantMobile: merchant.mobileNumber,
-          merchantEmail: merchant.email,
-          campaign: campaign.id,
-          company: company,
+          merchantEmail:merchant.email,
+          company:company,
+          campaignTemplate,
           address: merchant.address,
+          campaignId: campaign.id,
         });
-        merchantObj.qrLink = `${process.env.TASK_URL}?merchant=${merchantObj.id}&campaign=${campaign.id}`;
-        await merchantObj.save();
       })
     );
   }

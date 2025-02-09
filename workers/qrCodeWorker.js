@@ -1,12 +1,12 @@
 // workers/qrCodeWorker.js
 
-const { generateCampaignQRs } = require('../utils/qrCodeUtility');
-const Code = require('../models/Code');
-const Company = require('../models/Company');
-const Campaign = require('../models/Campaign');
-const logger = require('../utils/logger');
+const { generateCampaignQRs } = require("../utils/qrCodeUtility");
+const Code = require("../models/Code");
+const Company = require("../models/Company");
+const Campaign = require("../models/Campaign");
+const logger = require("../utils/logger");
 
-module.exports = async function(job, done) {
+module.exports = async function (job, done) {
   try {
     const {
       companyId,
@@ -37,6 +37,7 @@ module.exports = async function(job, done) {
 
     // Prepare code documents
     const codeDocuments = qrData.qrCodes.map((codeObj) => ({
+      campaignTemplate: campaign.campaignTemplate,
       code: codeObj.code,
       company: userCompany._id,
       campaign: campaign._id,
@@ -49,12 +50,12 @@ module.exports = async function(job, done) {
 
     // Update campaign with the zip file URL
     campaign.zipUrl = qrData.zipFilePath;
-    campaign.status = 'Ready'; // Indicate that QR codes are ready
+    campaign.status = "Ready"; // Indicate that QR codes are ready
     await campaign.save();
 
     done();
   } catch (err) {
-    logger.error('Failed to generate QR codes:', err);
+    logger.error("Failed to generate QR codes:", err);
     done(err);
   }
 };

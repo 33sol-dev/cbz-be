@@ -1,15 +1,14 @@
+const { getQrByCampaign, processQrScan } = require("../controllers/codeController");
 const Code = require("../models/Code");
 const express = require("express");
 const router = express.Router();
 
 
-const getQrByCampaign = async (req, res) => {
-  const { campaignId } = req.body;
-  const codes = await Code.find({ campaign: campaignId });
-  res.json({ codes });
-};
+
 
 router.post("/get-campaign-codes", getQrByCampaign);
+
+router.post('/process-bounty',processQrScan)
 
 
 module.exports = router;
