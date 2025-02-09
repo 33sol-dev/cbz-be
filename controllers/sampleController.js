@@ -1,5 +1,4 @@
 const SampleCode = require("../models/SampleCode");
-const axios = require("axios");
 const logger = require("../utils/logger");
 const { sendMessage } = require("./webhookController");
 

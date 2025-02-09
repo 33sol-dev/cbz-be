@@ -1,12 +1,12 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const passport = require('passport');
-const User = require('../models/User');
-require('../middlewares/passport-setup');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const passport = require("passport");
+const User = require("../models/User");
+require("../middlewares/passport-setup");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const logger = require("../utils/logger");
-const { token } = require('morgan');
+const { token } = require("morgan");
 
 /**
  * @swagger
@@ -92,20 +92,27 @@ const { token } = require('morgan');
  *                   example: "An unexpected error occurred."
  */
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    function(req, res) {
-      logger.info("Setting user's session");
-        // Successful authentication
-        req.session.user = {
-            id: req.user.id, // Assuming your user model has an id field
-            username: req.user.username, // Username or any other user fields
-            isLoggedIn: true
-        };
-        res.json({ message: 'User authenticated successfully', token: req.user.token });
-        res.redirect('/dashboard'); // Redirect to a dashboard or other internal page
-    }
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  function (req, res) {
+    logger.info("Setting user's session");
+    // Successful authentication
+    req.session.user = {
+      id: req.user.id, // Assuming your user model has an id field
+      username: req.user.username, // Username or any other user fields
+      isLoggedIn: true,
+    };
+    res.json({
+      message: "User authenticated successfully",
+      token: req.user.token,
+    });
+    res.redirect("/dashboard"); // Redirect to a dashboard or other internal page
+  }
 );
 /**
  * @swagger
@@ -151,14 +158,14 @@ router.get('/google/callback',
  *         description: Server error
  */
 // Local Signup Route
-router.post('/signup', async (req, res) => {
+router.post("/signup", async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
 
     // Check if a user with the given email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email already in use' });
+      return res.status(400).json({ message: "Email already in use" });
     }
 
     // Hash the password
@@ -179,9 +186,11 @@ router.post('/signup', async (req, res) => {
     // Set user session upon successful signup
     req.session.user = { id: user.id, email: user.email, isLoggedIn: true };
 
-    res.status(201).json({ message: 'User created successfully', userId: user.id });
+    res
+      .status(201)
+      .json({ message: "User created successfully", userId: user.id });
   } catch (error) {
-    logger.error('Error in signup route:', error);
+    logger.error("Error in signup route:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -216,44 +225,53 @@ router.post('/signup', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email }).select('+password'); // Since password field is not selected by default
+    const user = await User.findOne({ email }).select("+password"); // Since password field is not selected by default
     if (!user) {
-      return res.status(401).send({ message: 'User not found' });
+      return res.status(401).send({ message: "User not found" });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).send({ message: 'Invalid credentials' });
+      return res.status(401).send({ message: "Invalid credentials" });
     }
     const token = jwt.sign(
       { id: user.id }, // This is the payload to encode, typically user id or similar
       process.env.JWT_SECRET, // Secret key to sign the token
-      { expiresIn: '1h' } // Options, e.g., token expiration
+      { expiresIn: "1h" } // Options, e.g., token expiration
     );
-    req.session.user = { id: user.id, username: user.username, isLoggedIn: true };
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      isLoggedIn: true,
+    }; 
 
-    res.send({ message: 'Logged in successfully', token });
+    console.log(user)
+
+    res.json({
+      message: "Logged in successfully",
+      token,
+      companyId: user.company,
+    });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
 });
 
-
-router.get('/logout', (req, res) => {
-  req.logout(function(err) {
+router.get("/logout", (req, res) => {
+  req.logout(function (err) {
     if (err) {
-      logger.error('Error during logout:', err);
+      logger.error("Error during logout:", err);
       return next(err); // Or handle error appropriately
     }
     req.session.destroy((err) => {
       if (err) {
-        logger.error('Error destroying session:', err);
+        logger.error("Error destroying session:", err);
         return next(err); // Or handle error appropriately
       }
-      res.clearCookie('connect.sid'); // Make sure to match the name of your session ID cookie
-      res.redirect('/'); // Redirect to home page or login page
+      res.clearCookie("connect.sid"); // Make sure to match the name of your session ID cookie
+      res.redirect("/"); // Redirect to home page or login page
     });
   });
 });
