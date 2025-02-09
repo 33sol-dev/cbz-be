@@ -96,24 +96,38 @@ router.get(
   "/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
+
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
-  function (req, res) {
-    logger.info("Setting user's session");
-    // Successful authentication
-    req.session.user = {
-      id: req.user.id, // Assuming your user model has an id field
-      username: req.user.username, // Username or any other user fields
-      isLoggedIn: true,
-    };
-    res.json({
-      message: "User authenticated successfully",
-      token: req.user.token,
-    });
-    res.redirect("/dashboard"); // Redirect to a dashboard or other internal page
+  async function (req, res, next) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Failed to authenticate user." });
+      }
+
+      // Sign a JWT for the authenticated user
+      const token = jwt.sign(
+        { id: req.user.id }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: "1h" }
+      );
+
+      // Store user in session (as you do in /login)
+      req.session.user = {
+        id: req.user.id,
+        email: req.user.email,
+        isLoggedIn: true,
+      };
+
+      res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+    } catch (error) {
+      logger.error("Error in Google callback:", error);
+      return res.status(500).json({ error: "An unexpected error occurred." });
+    }
   }
 );
+
 
 router.post("/signup", async (req, res) => {
   try {
