@@ -127,7 +127,10 @@ exports.getMerchant = async (req, res) => {
       return res.status(400).json({ message: "Invalid merchant ID" });
     }
 
-    const merchant = await Merchant.findById(merchantId).populate("merchantCode");
+    const merchant = await Merchant.findById(merchantId).populate({
+      path: "merchantCode",
+      model: "Code" // Ensure this matches your schema reference
+    });
     if (!merchant) {
       return res.status(404).json({ message: "Merchant not found" });
     }
