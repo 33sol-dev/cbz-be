@@ -11,9 +11,17 @@ const qrCodeQueue = new Queue("qrCodeQueue", {
 });
 
 // Process jobs in the queue
-qrCodeQueue.process("qrCodeGeneration",async (job, done) => {
+qrCodeQueue.process("qrCodeGeneration", async (job, done) => {
   try {
-    const { companyId, campaignId, codes, qrStyle, logoUrl , taskUrl } = job.data;
+    const {
+      companyId,
+      campaignId,
+      codes,
+      triggerText,
+      logoUrl,
+      taskUrl,
+      campaignTemplate,
+    } = job.data;
     const campaign = await Campaign.findById(campaignId);
     const company = await Company.findById(companyId);
     if (!company) {
@@ -22,12 +30,12 @@ qrCodeQueue.process("qrCodeGeneration",async (job, done) => {
     if (!campaign) {
       throw new Error(`Campaign with ID ${campaignId} not found.`);
     }
-    console.log(`Processing QR Code Generation for Campaign: ${campaignId}`);
-    console.log(`QR Style: ${qrStyle}, Logo: ${logoUrl}`);
+    console.log(`Processing QR Code Generation for Campaign: ${campaignId} with Template ${campaignTemplate}`);
     console.log(`Codes:`, codes);
     const qrCodes = codes.map((code) => {
       return new Code({
         code: code,
+        campaignTemplate:campaignTemplate,
         company: companyId,
         campaign: campaignId,
         url: taskUrl + code,

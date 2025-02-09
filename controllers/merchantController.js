@@ -102,7 +102,11 @@ exports.getMerchants = async (req, res) => {
       return res.status(400).json({ message: "Invalid campaign ID" });
     }
 
-    const merchants = await Merchant.find({ campaign: campaignId });
+    const merchants = await Merchant.find({ campaign: campaignId }).populate({
+      path: "merchantCode",
+      model: "Code" // Ensure this matches your schema reference
+    });
+    
 
     res.status(200).json({ merchants });
   } catch (err) {
@@ -123,7 +127,7 @@ exports.getMerchant = async (req, res) => {
       return res.status(400).json({ message: "Invalid merchant ID" });
     }
 
-    const merchant = await Merchant.findById(merchantId);
+    const merchant = await Merchant.findById(merchantId).populate("merchantCode");
     if (!merchant) {
       return res.status(404).json({ message: "Merchant not found" });
     }

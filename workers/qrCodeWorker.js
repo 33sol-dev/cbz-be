@@ -29,6 +29,7 @@ module.exports = async function (job, done) {
       companyName,
       campaignName,
       codes,
+      campaignTemplate,
       triggerText,
       mobileNumber,
       qrStyle,

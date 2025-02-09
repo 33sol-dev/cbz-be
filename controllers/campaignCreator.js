@@ -25,6 +25,7 @@ exports.generateCampaign = async (req, res) => {
       campaignTemplate,
       company,
       merchants,
+      noOfSamples,
       triggerText,
       taskType,
       taskUrl,
@@ -74,6 +75,7 @@ exports.generateCampaign = async (req, res) => {
         rewardAmount,
         campaignTemplate,
         company,
+        noOfSamples,
         userId,
         taskType,
         triggerText,
@@ -149,7 +151,7 @@ const generateTaskCampaign = async ({
           merchantName: merchant.name,
           upiId: merchant.upiId,
           merchantMobile: merchant.mobileNumber,
-          merchantEmail:merchant.email,
+          merchantEmail: merchant.email,
           company,
           campaignTemplate: campaign.campaignTemplate,
           address: merchant.address,
@@ -169,7 +171,7 @@ const generateProductCampaign = async ({
   name,
   description,
   taskType,
-  totalAmount,
+  noOfSamples,
   rewardAmount,
   campaignTemplate,
   company,
@@ -183,8 +185,8 @@ const generateProductCampaign = async ({
     description,
     status: "Pending",
     taskType,
-    totalAmount,
     rewardAmount,
+    noOfSamples,
     triggerText,
     campaignTemplate,
     company,
@@ -197,24 +199,24 @@ const generateProductCampaign = async ({
 
   existingCodeDocs.forEach((doc) => codes.add(doc.code));
 
-  const totalCodesToGenerate = Math.floor(totalAmount / rewardAmount);
   const prefix = "BOUNTY";
 
   const generatedCodes = [];
-  while (generatedCodes.length < totalCodesToGenerate) {
-    const randomNum = Math.floor(10000 + Math.random() * 90000);
+  while (generatedCodes.length < noOfSamples) {
+    const randomNum = Math.floor(10000 + Math.random() * 900000);
     const code = `${prefix}${randomNum}`;
     if (!codes.has(code)) {
       generatedCodes.push(code);
       codes.add(code);
     }
   }
-
+  console.log("Generating These COdes in the Queue", generatedCodes);
   await qrCodeQueue.add("qrCodeGeneration", {
     companyId: company,
     campaignId: campaign.id,
     codes: generatedCodes,
     triggerText: triggerText,
+    campaignTemplate,
     taskUrl: process.env.WHATSAPP_REDIRECT_URL,
     mobileNumber: "0000000000", // Placeholder (should be fetched dynamically if needed)
     userId: userId,
@@ -237,7 +239,7 @@ const generateSampleGiveAwayCampaign = async ({
   tags,
   publishPin,
 }) => {
-  console.log(`Creating Campaign for ${campaignTemplate} ${company}`)
+  console.log(`Creating Campaign for ${campaignTemplate} ${company}`);
   const campaign = await Campaign.create({
     taskType,
     name,
@@ -252,7 +254,7 @@ const generateSampleGiveAwayCampaign = async ({
 
   campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaign/register-merchant/campaign=${campaign.id}&company=${company}`;
   await campaign.save();
-  console.log("Campaign Creation Syccessful")
+  console.log("Campaign Creation Syccessful");
   if (merchants && merchants.length > 0) {
     await Promise.all(
       merchants.map(async (merchant) => {
@@ -260,8 +262,8 @@ const generateSampleGiveAwayCampaign = async ({
           merchantName: merchant.name,
           upiId: merchant.upiId,
           merchantMobile: merchant.mobileNumber,
-          merchantEmail:merchant.email,
-          company:company,
+          merchantEmail: merchant.email,
+          company: company,
           campaignTemplate,
           address: merchant.address,
           campaignId: campaign.id,

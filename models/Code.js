@@ -24,7 +24,6 @@ const CodeSchema = new mongoose.Schema({
   merchant: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Merchant",
-    required: true,
   },
   url: { type: String },
 });

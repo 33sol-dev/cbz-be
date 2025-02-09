@@ -33,6 +33,7 @@ const processAward = async (codeObj, customer) => {
   if (!merchant || !campaign) throw new Error("Invalid campaign or merchant");
 
   if (await validateUnique(campaign.id, customer.id)) {
+    console.log(`Paying ${merchant.merchantName} With ${campaign.rewardAmount}`)
     await initiateUPIPayout(
       merchant.upiId,
       campaign.rewardAmount,
