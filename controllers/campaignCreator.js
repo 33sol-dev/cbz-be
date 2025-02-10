@@ -130,7 +130,6 @@ const generateTaskCampaign = async ({
   tags,
   publishPin,
   userId,
-  triggerText,
 }) => {
   const campaign = await Campaign.create({
     name,
@@ -247,7 +246,6 @@ const generateSampleGiveAwayCampaign = async ({
   taskUrl,
   tags,
   publishPin,
-  triggerText,
 }) => {
   console.log(`Creating Campaign for ${campaignTemplate} ${company}`);
   const campaign = await Campaign.create({
