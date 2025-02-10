@@ -145,7 +145,7 @@ const generateTaskCampaign = async ({
     user: userId,
   });
 
-  campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaigns/register-merchant?campaign=${campaign.id}&company=${company}`;
+  campaign.merchantRegistrationLink = `${process.env.MERCHANT_REGISTRATION_URL}?campaign=${campaign.id}&company=${company}`;
   await campaign.save();
 
   if (merchants && merchants.length > 0) {
@@ -258,7 +258,7 @@ const generateSampleGiveAwayCampaign = async ({
     tags,
   });
 
-  campaign.merchantRegistrationLink = `${process.env.FRONTEND_URL}/campaigns/register-merchant?campaign=${campaign.id}&company=${company}`;
+  campaign.merchantRegistrationLink = `${process.env.MERCHANT_REGISTRATION_URL}?campaign=${campaign.id}&company=${company}`;
   await campaign.save();
   console.log("Campaign Creation Syccessful");
   if (merchants && merchants.length > 0) {
