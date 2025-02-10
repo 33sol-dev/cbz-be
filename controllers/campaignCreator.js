@@ -63,6 +63,7 @@ exports.generateCampaign = async (req, res) => {
         tags,
         publishPin,
         userId,
+        triggerText,
       });
     } else if (campaignTemplate === "product") {
       if (!triggerText)
@@ -98,6 +99,7 @@ exports.generateCampaign = async (req, res) => {
         tags,
         publishPin,
         userId,
+        triggerText,
       });
     } else {
       return res.status(400).json({ message: "Invalid campaign template" });
@@ -143,6 +145,7 @@ const generateTaskCampaign = async ({
     publishPin: publishPin || generateRandomPin(),
     tags,
     user: userId,
+    triggerText,
   });
 
   campaign.merchantRegistrationLink = `${process.env.MERCHANT_REGISTRATION_URL}?campaign=${campaign.id}&company=${company}`;
@@ -256,6 +259,7 @@ const generateSampleGiveAwayCampaign = async ({
     company,
     publishPin: publishPin || generateRandomPin(),
     tags,
+    triggerText,
   });
 
   campaign.merchantRegistrationLink = `${process.env.MERCHANT_REGISTRATION_URL}?campaign=${campaign.id}&company=${company}`;
