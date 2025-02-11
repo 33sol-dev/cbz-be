@@ -23,7 +23,7 @@ exports.getCampaigns = async (req, res) => {
 exports.getCampaignById = async (req, res) => {
   try {
     const { campaignId } = req.params;
-    const campaign = await Campaign.findById(campaignId);
+    const campaign = await Campaign.findById(campaignId).populate("company");
 
     if (!campaign) {
       return res

@@ -12,7 +12,7 @@ const upload = multer({ dest: "uploads/" });
 // router.post('/create', upload.single('file'), campaignController.createCampaign);
 router.post("/create", upload.single("file"), generateCampaign);
 router.get("/", verifyToken, campaignController.getCampaigns);
-router.get("/:campaignId", verifyToken, campaignController.getCampaignById);
+router.get("/:campaignId", campaignController.getCampaignById);
 router.get(
   "/:campaignId/insights",
   verifyToken,
