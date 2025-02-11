@@ -217,6 +217,10 @@ const generateProductCampaign = async ({
       codes.add(code);
     }
   }
+
+  const companyData = await Company.findById(company);
+
+
   console.log("Generating These COdes in the Queue", generatedCodes);
   await qrCodeQueue.add("qrCodeGeneration", {
     companyId: company,
@@ -224,7 +228,7 @@ const generateProductCampaign = async ({
     codes: generatedCodes,
     triggerText: triggerText,
     campaignTemplate,
-    taskUrl: process.env.WHATSAPP_REDIRECT_URL,
+    taskUrl: `https://wa.me/${companyData.phoneNumber}?text=`,
     mobileNumber: "0000000000", // Placeholder (should be fetched dynamically if needed)
     userId: userId,
   });
