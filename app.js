@@ -135,6 +135,8 @@ const corsOptions = {
       "https://bountyfe-git-auth-omchillures-projects.vercel.app",
       "https://bountyfe.vercel.app",
       "https://app.huntbounty.xyz",
+      "https://bounty-form.vercel.app",
+      "http://localhost:3001"
     ];
     if (whitelist.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
