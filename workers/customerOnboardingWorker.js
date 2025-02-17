@@ -1,5 +1,4 @@
 // workers/customerOnboardingWorker.js
-
 const csv = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
@@ -15,13 +14,13 @@ module.exports = async function (job, done) {
   try {
     logger.info(`customerOnboardingWorker started processing job ${job.id}`);
     const { companyId, campaignId, csvFilePath, userId, codes } = job.data;
+
     logger.info("trying to find campaing" + campaignId);
     const customers = [];
     const codeDocuments = [];
 
     // Get the campaign to access customFieldConfig
-    const campaign = await Campaign.findById(campaignId); 
-
+    const campaign = await Campaign.findById(campaignId);
     if (!campaign) {
       throw new Error('Campaign not found');
     }
@@ -88,6 +87,7 @@ module.exports = async function (job, done) {
     // Update campaign status to 'Ready'
     campaign.status = 'Ready';
     await campaign.save();
+
 
     logger.info('Customer onboarding and code generation completed for campaign:', campaignId);
     done();

@@ -1,7 +1,9 @@
+// queues/qrCodeQueue.js
 const Queue = require("bull");
 const Code = require("../models/Code");
 const Campaign = require("../models/Campaign");
 const Company = require("../models/Company");
+
 // Create a Bull queue for QR code generation
 const qrCodeQueue = new Queue("qrCodeQueue", {
   redis: {
@@ -22,31 +24,41 @@ qrCodeQueue.process("qrCodeGeneration", async (job, done) => {
       taskUrl,
       campaignTemplate,
     } = job.data;
+
     const campaign = await Campaign.findById(campaignId);
     const company = await Company.findById(companyId);
+
     if (!company) {
       throw new Error(`Company with ID ${companyId} not found.`);
     }
     if (!campaign) {
       throw new Error(`Campaign with ID ${campaignId} not found.`);
     }
+
     console.log(`Processing QR Code Generation for Campaign: ${campaignId} with Template ${campaignTemplate}`);
     console.log(`Codes:`, codes);
+
     const qrCodes = codes.map((code) => {
       return new Code({
         code: code,
         campaignTemplate:campaignTemplate,
         company: companyId,
         campaign: campaignId,
-        url: taskUrl + code,
+        url: taskUrl + code, // Construct the full URL
       });
     });
+
     await Code.insertMany(qrCodes);
+
+
     campaign.status = "Ready";
     company.qrCodeBalance -= codes.length;
     await company.save();
     await campaign.save();
+
+
     // Add actual QR code generation logic here (e.g., using qrcode library)
+
     done();
   } catch (error) {
     console.error("Error processing QR code generation job:", error);
@@ -57,15 +69,12 @@ qrCodeQueue.process("qrCodeGeneration", async (job, done) => {
 qrCodeQueue.on("error", (err) => {
   console.error("Queue Error:", err);
 });
-
 qrCodeQueue.on("stalled", (job) => {
   console.warn("Job Stalled:", job.id);
 });
-
 qrCodeQueue.on("completed", (job) => {
   console.log("Job Completed:", job.id);
 });
-
 qrCodeQueue.on("failed", (job, err) => {
   console.error("Job Failed:", job.id, err);
 });

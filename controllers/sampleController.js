@@ -1,8 +1,8 @@
+// controllers/sampleController.js (This file is relatively unchanged, but reviewed)
 const SampleCode = require("../models/SampleCode");
 const { generateUniqueCode } = require("../utils/generateUniqueCode");
 const logger = require("../utils/logger");
 const { sendMessage } = require("./webhookController");
-
 const MESSAGE_TEMPLATE =
   "Hey Thank you for your interest in our product. Here is your unique sample code, use it to get your free sample: ";
 
@@ -27,7 +27,6 @@ const handleSampleRoute = async (req, res) => {
       macAddress: macAddress,
       campaign: campaignId,
     });
-
     if (existingSample) {
       return res.status(400).json({ message: "Viewer already exists" });
     }
@@ -43,16 +42,15 @@ const handleSampleRoute = async (req, res) => {
       samplerMobile: viewerNumber,
       code,
     });
-
     await newSampleCode.save();
 
     // Send WhatsApp message with the code
     await sendMessage(
       viewerNumber,
-      MESSAGE_TEMPLATE + code
+       MESSAGE_TEMPLATE + code // Use a template
     );
 
-
+    // controllers/sampleController.js (continued)
     return res.status(200).json({
       message: "Viewer added successfully",
       code,

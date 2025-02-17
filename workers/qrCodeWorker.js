@@ -1,62 +1,61 @@
-// workers/qrCodeWorker.js
+// workers/queueWorker.js (This file is correct and well-structured)
+const Queue = require('bull');
+const logger = require('../utils/logger');
 
-const { generateCampaignQRs } = require("../utils/qrCodeUtility");
-const Code = require("../models/Code");
-const Company = require("../models/Company");
-const Campaign = require("../models/Campaign");
-const logger = require("../utils/logger");
+try {
+  // Initialize qrCodeQueue
+  const qrCodeQueue = new Queue('qrCodeQueue', {
+    redis: {
+      host: '127.0.0.1', // Use localhost IP
+      port: 6379,
+    },
+  });
 
-module.exports = async function (job, done) {
-  try {
-    const {
-      companyId,
-      campaignId,
-      codes,
-      triggerText,
-      mobileNumber,
-      qrStyle,
-      logoUrl, // New
-    } = job.data;
+  // Process qrCodeQueue
+  qrCodeQueue.process('qrCodeGeneration', require('./qrCodeWorker'));
 
-    const userCompany = await Company.findById(companyId);
-    const campaign = await Campaign.findById(campaignId);
+  // Initialize customerOnboardingQueue
+  const customerOnboardingQueue = new Queue('customerOnboardingQueue', {
+    redis: {
+      host: '127.0.0.1',
+      port: 6379,
+    },
+  });
 
-    const companyName = userCompany.name;
-    const campaignName = campaign.name;
+  // Process customerOnboardingQueue
+  customerOnboardingQueue.process('customerOnboarding', require('./customerOnboardingWorker'));
 
-    // Generate QR codes asynchronously
-    const qrData = await generateCampaignQRs(
-      companyName,
-      campaignName,
-      codes,
-      campaignTemplate,
-      triggerText,
-      mobileNumber,
-      qrStyle,
-      logoUrl // Pass logoUrl
-    );
+  // Event listeners for qrCodeQueue
+  qrCodeQueue.on('completed', (job) => {
+    logger.info(`QR Code Job completed: ${job.id}`);
+  });
 
-    // Prepare code documents
-    const codeDocuments = qrData.qrCodes.map((codeObj) => ({
-      campaignTemplate: campaign.campaignTemplate,
-      code: codeObj.code,
-      company: userCompany._id,
-      campaign: campaign._id,
-      filePath: codeObj.filePath,
-      url: codeObj.url,
-    }));
+  qrCodeQueue.on('failed', (job, err) => {
+    logger.error(`QR Code Job failed: ${job.id}, Error: ${err.message}`);
+  });
 
-    // Insert codes into the database
-    await Code.insertMany(codeDocuments);
+  // Event listeners for customerOnboardingQueue
+  customerOnboardingQueue.on('completed', (job) => {
+    logger.info(`Customer Onboarding Job completed: ${job.id}`);
+  });
 
-    // Update campaign with the zip file URL
-    campaign.zipUrl = qrData.zipFilePath;
-    campaign.status = "Ready"; // Indicate that QR codes are ready
-    await campaign.save();
+  customerOnboardingQueue.on('failed', (job, err) => {
+    logger.error(`Customer Onboarding Job failed: ${job.id}, Error: ${err.message}`);
+  });
 
-    done();
-  } catch (err) {
-    logger.error("Failed to generate QR codes:", err);
-    done(err);
-  }
-};
+  logger.info('Queue workers are running...');
+
+} catch (error) {
+  logger.error('Error initializing queue workers:', error);
+  process.exit(1); // Exit with an error code
+}
+
+// Graceful shutdown (optional, but good practice)
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  process.exit(1); // Exit with an error code
+});

@@ -1,5 +1,4 @@
 // utils/qrCodeUtility.js
-
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs-extra');
 const path = require('path');
@@ -17,8 +16,8 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
-exports.generateCampaignQRs = async (companyName, campaignName, codes, messageTemplate, mobileNumber, qrStyle, logoUrl) => {
-    const basePath = path.join(__dirname, '../temp/tempQRs');
+exports.generateCampaignQRs = async (companyName, campaignName, codes,messageTemplate, mobileNumber, qrStyle, logoUrl) => {
+  const basePath = path.join(__dirname, '../temp/tempQRs');
   fs.ensureDirSync(basePath); // Ensure the directory exists
 
   const csvWriter = createCsvWriter({
@@ -32,26 +31,26 @@ exports.generateCampaignQRs = async (companyName, campaignName, codes, messageTe
 
   const records = [];
   const qrDetails = [];
-
   const logoPath = path.join(__dirname, 'bounty.png'); // Adjust the path to your logo image
 
-  for (const code of codes) {
-    // Generate the final message by appending the code
-    const finalMessage = messageTemplate + " - " + code;
 
-    // Construct the WhatsApp URL
-    const encodedMessage = encodeURIComponent(finalMessage);
-    const qrContent = `https://wa.me/${mobileNumber}?text=${encodedMessage}`;
+  for (const code of codes) {
+     // Generate the final message by appending the code
+     const finalMessage = messageTemplate + " - " + code;
+
+     // Construct the WhatsApp URL
+     const encodedMessage = encodeURIComponent(finalMessage);
+     const qrContent = `https://wa.me/${mobileNumber}?text=${encodedMessage}`;
 
     const filename = path.join(basePath, `qr_${code}.png`);
     try {
-        await qrUtility.generateQR(qrContent, filename, qrStyle, logoPath, logoUrl);
-        records.push({ code, url: qrContent, filename });
-        qrDetails.push({ code, filePath: filename, url: qrContent });
-      } catch (error) {
-        logger.error('Failed to generate QR code for:', code, error);
-        continue; // Skip this code and continue with the next
-      }
+      await qrUtility.generateQR(qrContent, filename, qrStyle, logoPath, logoUrl);
+      records.push({ code, url: qrContent, filename });
+      qrDetails.push({ code, filePath: filename, url: qrContent });
+    } catch (error) {
+      logger.error('Failed to generate QR code for:', code, error);
+      continue; // Skip this code and continue with the next
+    }
   }
 
   // Write CSV file
@@ -72,11 +71,12 @@ exports.generateCampaignQRs = async (companyName, campaignName, codes, messageTe
   archive.directory(basePath, false);
   await archive.finalize();
 
+
   // Upload to S3
   const stream = fs.createReadStream(zipPath);
   const s3Params = {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: `campaigns/${companyName}/${campaignName}.zip`,
+    Key: `campaigns/${companyName}/${campaignName}.zip`, // Better path
     Body: stream,
   };
 
@@ -89,6 +89,7 @@ exports.generateCampaignQRs = async (companyName, campaignName, codes, messageTe
     throw err; // Re-throw the error to be handled by the calling function
   }
 
+
   // Clean up local files if desired
   // fs.removeSync(basePath); // Remove the temporary QR codes directory
   // fs.unlinkSync(zipPath);   // Remove the zip file
@@ -96,4 +97,3 @@ exports.generateCampaignQRs = async (companyName, campaignName, codes, messageTe
   logger.info(`Generated ${qrDetails.length} QR codes and saved CSV file.`);
   return { qrCodes: qrDetails, zipFilePath: uploadResult.Location };
 };
-

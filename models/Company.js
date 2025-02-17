@@ -1,5 +1,4 @@
 // models/Company.js
-
 const mongoose = require('mongoose');
 
 const RechargeSchema = new mongoose.Schema({
@@ -17,8 +16,8 @@ const CompanySchema = new mongoose.Schema({
   phoneNumber: { type: String },
   description: { type: String },
   website: { type: String },
-  gstin: { type: String, sparse: true },
-  pan: { type: String, sparse: true },
+  gstin: { type: String, sparse: true }, // sparse: true allows multiple documents to have null gstin
+  pan: { type: String, sparse: true },   // sparse: true allows multiple documents to have null pan
   industry: { type: String },
   whatsappNumber: { type: String }, // For custom WhatsApp number
   qrCodeBalance: { type: Number, default: 3 }, // Start with 3 for trial

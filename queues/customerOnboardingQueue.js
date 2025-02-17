@@ -1,5 +1,4 @@
 // queues/customerOnboardingQueue.js
-
 const Queue = require('bull');
 
 // Create a Bull queue

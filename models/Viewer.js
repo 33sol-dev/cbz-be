@@ -1,5 +1,5 @@
+// models/Viewer.js
 const mongoose = require("mongoose")
-
 
 const ViewerSchema = new mongoose.Schema({
     campaign:{
@@ -14,7 +14,5 @@ const ViewerSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-
 })
-
 module.exports = mongoose.models["Viewer"] || mongoose.model("Viewer", ViewerSchema);

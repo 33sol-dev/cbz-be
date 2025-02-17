@@ -1,3 +1,4 @@
+// models/SampleCode.js
 const mongoose = require("mongoose");
 
 const SampleCodeSchema = new mongoose.Schema(

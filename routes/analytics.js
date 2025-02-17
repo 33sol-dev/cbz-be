@@ -1,27 +1,32 @@
+// routes/analytics.js
 const express = require("express");
 const Campaign = require("../models/Campaign");
 const Code = require("../models/Code");
 const router = express.Router();
+const { body } = require('express-validator');
 
+router.post("/total-campaigns", [
+    body('companyid').isMongoId().withMessage('Invalid company ID')
+], async (req, res) => {
+    const { companyid } = req.body;
+    const campaigns = await Campaign.find({ company: companyid }).countDocuments();
+    res.json({ campaigns });
+});
 
-router.post("/total-campaigns",async (req,res)=>{
-    const {companyid} = req.body;
-    const campaigns = await Campaign.find({company:companyid}).countDocuments();
-    res.json({campaigns});
-})
-
-router.post("/rewards-issued", async (req, res) => {
+router.post("/rewards-issued", [
+    body('companyid').isMongoId().withMessage('Invalid company ID')
+], async (req, res) => {
     try {
         const { companyid } = req.body;
         const codesData = await Code.aggregate([
-            { $match: { company: companyid, isUsed: true } }, // Filter codes for the company and used ones
+            { $match: { company: companyid, isUsed: true } },
             {
                 $group: {
                     _id: {
-                        date: { $dateToString: { format: "%Y-%m-%d", date: "$usedAt" } }, // Group by date
-                        year: { $year: "$usedAt" }, // Add year for separation
+                        date: { $dateToString: { format: "%Y-%m-%d", date: "$usedAt" } },
+                        year: { $year: "$usedAt" },
                     },
-                    total: { $sum: 1 }, // Count codes
+                    total: { $sum: 1 },
                 },
             },
             {
@@ -32,10 +37,8 @@ router.post("/rewards-issued", async (req, res) => {
                     _id: 0,
                 },
             },
-            { $sort: { date: 1 } }, // Sort by date for line chart plotting
+            { $sort: { date: 1 } },
         ]);
-
-        // Step 3: Respond with data structured for the line chart
         res.status(200).json({
             success: true,
             data: codesData,
@@ -50,32 +53,32 @@ router.post("/rewards-issued", async (req, res) => {
     }
 });
 
-router.post("/user-onboarded", async (req, res) => {
+router.post("/user-onboarded", [
+    body('companyid').isMongoId().withMessage('Invalid company ID')
+], async (req, res) => {
     try {
         const { companyid } = req.body;
         const codesData = await Code.aggregate([
-            { $match: { company: companyid, isUsed: true } }, // Filter codes for the company and used ones
+            { $match: { company: companyid, isUsed: true } },
             {
                 $group: {
                     _id: {
-                        date: { $dateToString: { format: "%Y-%m-%d", date: "$usedAt" } }, // Group by date
-                        year: { $year: "$usedAt" }, // Add year for separation
+                        date: { $dateToString: { format: "%Y-%m-%d", date: "$usedAt" } },
+                        year: { $year: "$usedAt" },
                     },
-                    uniqueUsers: { $addToSet: "$usedBy" }, // Collect unique user IDs
+                    uniqueUsers: { $addToSet: "$usedBy" },
                 },
             },
             {
                 $project: {
                     date: "$_id.date",
                     year: "$_id.year",
-                    uniqueUserCount: { $size: "$uniqueUsers" }, // Count unique users
+                    uniqueUserCount: { $size: "$uniqueUsers" },
                     _id: 0,
                 },
             },
-            { $sort: { date: 1 } }, // Sort by date for line chart plotting
+            { $sort: { date: 1 } },
         ]);
-
-        // Step 3: Respond with data structured for the line chart
         res.status(200).json({
             success: true,
             data: codesData,
