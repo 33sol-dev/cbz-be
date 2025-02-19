@@ -40,7 +40,7 @@ exports.generateMerchantObject = async ({
       });
       await merchantCode.save();
 
-      merchant.qrLink = `${process.env.FRONTEND_URL}?campaign=${campaignId}&merchant=${merchant._id}&code=${codeString}`; // Include campaign, merchant, AND code
+      merchant.qrLink = `${process.env.FRONTEND_URL}/video?campaign=${campaignId}&merchant=${merchant._id}&code=${codeString}`; // Include campaign, merchant, AND code
       merchant.merchantCode = merchantCode.id;
       await merchant.save();
       return merchant;
