@@ -1,5 +1,6 @@
 // controllers/campaignController.js
 const Campaign = require("../models/Campaign");
+const Customer = require("../models/Customer");
 const logger = require("../utils/logger");
 const Transaction = require("../models/Transaction");
 const Merchant = require("../models/Merchant");

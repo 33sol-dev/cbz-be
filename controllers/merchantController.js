@@ -16,7 +16,8 @@ exports.generateMerchantObject = async ({
     company,
     address,
     campaignId,
-    campaignTemplate
+    campaignTemplate,
+    taskUrl, // Receive taskUrl
   }) => {
     try {
       const codeString = await generateUniqueCode();
@@ -39,7 +40,7 @@ exports.generateMerchantObject = async ({
       });
       await merchantCode.save();
 
-      merchant.qrLink = `${constants.taskUrl}?campaign=${campaignId}&merchant=${merchant._id}`;
+      merchant.qrLink = `${taskUrl}?campaign=${campaignId}&merchant=${merchant._id}&code=${codeString}`; // Include campaign, merchant, AND code
       merchant.merchantCode = merchantCode.id;
       await merchant.save();
       return merchant;

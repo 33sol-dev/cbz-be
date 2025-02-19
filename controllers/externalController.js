@@ -464,24 +464,26 @@ exports.updateCustomer = async (req, res) => {
 };
 
 //Get Payout Config
+// controllers/externalController.js
 exports.getPayoutConfig = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-  }
-
-  try {
-      const { campaignId } = req.params;
-
-      // Get the campaign
-      const campaign = await Campaign.findById(campaignId).lean(); // Use lean()
-      if (!campaign) {
-          return res.status(404).json({ message: "Campaign not found" });
-      }
-
-      res.json({ payoutConfig: campaign.payoutConfig || {} }); // Return empty object if null
-  } catch (error) {
-      logger.error("Error in getPayoutConfig:", error);
-      res.status(500).json({ message: "Server error", error: error.toString() });
-  }
-};
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+  
+    try {
+        const { campaignId } = req.params;
+  
+        // Get the campaign
+        const campaign = await Campaign.findById(campaignId).lean(); // Use lean()
+        if (!campaign) {
+            return res.status(404).json({ message: "Campaign not found" });
+        }
+        console.log("helllo"+campaign);
+        // Access payoutConfig within rewardConfig
+        res.json({ payoutConfig: campaign.rewardConfig?.payoutConfig || {} }); // Return empty object if null or undefined
+    } catch (error) {
+        logger.error("Error in getPayoutConfig:", error);
+        res.status(500).json({ message: "Server error", error: error.toString() });
+    }
+  };

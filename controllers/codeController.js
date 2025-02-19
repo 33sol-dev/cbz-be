@@ -9,6 +9,8 @@ const logger = require("../utils/logger");
 const { generateUniqueCode } = require("../utils/generateUniqueCode");
 const { initiateUPIPayout } = require("../utils/paymentService");
 const { validationResult } = require('express-validator');
+const qr = require('qrcode');
+
 
 const validateUnique = async (campaign, customer) => {
   const transaction = await Transaction.findOne({ campaign, customer }).lean();
@@ -160,3 +162,23 @@ exports.getQrByCampaign = async (req, res) => {
         res.status(500).json({ message: "Server error", error: err.toString() });
     }
 };
+exports.getQRCode = async (req, res) => {
+    try {
+      const { codeId } = req.params;
+      const code = await Code.findById(codeId);
+  
+      if (!code) {
+        return res.status(404).json({ message: "Code not found" });
+      }
+      if (!code.url) {
+          return res.status(404).json({message: "URL Not found"})
+      }
+  
+      const qrCodeDataURL = await qr.toDataURL(code.url);  // Generate on-the-fly
+      res.json({ qrCodeDataURL });
+  
+    } catch (err) {
+      logger.error("Error in getQRCode:", err);
+      res.status(500).json({ message: "Server error", error: err.toString() });
+    }
+  };

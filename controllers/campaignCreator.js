@@ -8,9 +8,6 @@ const Company = require("../models/Company");
 const { generateMerchantObject } = require("./merchantController");
 const { validationResult } = require('express-validator');
 
-/**
- * Generate a campaign based on the template type
- */
 exports.generateCampaign = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -28,16 +25,13 @@ exports.generateCampaign = async (req, res) => {
             merchants,
             noOfSamples,
             triggerText,
-            taskType,
+            taskType, // Get ALL taskConfig fields from req.body
             taskUrl,
             tags,
+            payoutConfig // Get payoutConfig from req.body for award
         } = req.body;
 
-        console.log(req.body);
         const publishPin = generateRandomPin();
-
-        // Validate required fields (already done by express-validator)
-
         const companyData = await Company.findById(company);
         if (!companyData) {
             return res.status(404).json({ message: "Company not found" });
@@ -45,6 +39,7 @@ exports.generateCampaign = async (req, res) => {
         const userId = companyData.companyId;
 
         let campaign;
+        let taskConfig = { taskType, taskUrl, triggerText }; // Centralized taskConfig
 
         // Handle different campaign templates
         if (campaignTemplate === "award") {
@@ -54,20 +49,20 @@ exports.generateCampaign = async (req, res) => {
                 totalAmount,
                 rewardAmount,
                 campaignTemplate,
-                taskType,
-                triggerText,  // Ensure triggerText is passed
                 company,
                 merchants,
-                taskUrl,
+                taskConfig, // Pass the entire taskConfig object
                 tags,
                 publishPin,
                 userId,
-                payoutConfig: req.body.payoutConfig
+                payoutConfig //for award
             });
         } else if (campaignTemplate === "product") {
-             if (!triggerText) {
+            if (!triggerText) {
                 return res.status(400).json({ message: "Missing triggerText for product campaign" });
             }
+             //For product campaign, we use taskURL as base and append code
+             taskConfig.taskUrl = `${taskUrl}?code=`; // Prepare for code appending in worker
             campaign = await generateProductCampaign({
                 name,
                 description,
@@ -77,8 +72,7 @@ exports.generateCampaign = async (req, res) => {
                 company,
                 noOfSamples,
                 userId,
-                taskType,
-                triggerText, // Ensure triggerText is passed
+                taskConfig, // Pass the entire taskConfig object
                 tags,
                 publishPin,
             });
@@ -89,9 +83,7 @@ exports.generateCampaign = async (req, res) => {
                 campaignTemplate,
                 company,
                 merchants,
-                taskUrl,
-                triggerText, // Ensure triggerText is passed
-                taskType,
+                taskConfig, // Pass the entire taskConfig object
                 tags,
                 publishPin,
                 userId
@@ -107,9 +99,6 @@ exports.generateCampaign = async (req, res) => {
 };
 
 
-/**
- * Generate a Task Campaign
- */
 const generateTaskCampaign = async ({
     name,
     description,
@@ -118,15 +107,14 @@ const generateTaskCampaign = async ({
     campaignTemplate,
     company,
     merchants,
-    triggerText, // Added
-    taskUrl,
-    taskType,
+    taskConfig, // Receive the complete taskConfig
     tags,
     publishPin,
     userId,
     payoutConfig
 }) => {
-    if (payoutConfig) {
+
+     if (payoutConfig) {
         if (typeof payoutConfig !== 'object' || payoutConfig === null) {
             throw new Error('payoutConfig must be an object');
         }
@@ -147,26 +135,20 @@ const generateTaskCampaign = async ({
           rewardType: "cashback", // Or determine dynamically
           payoutConfig: payoutConfig ? new Map(Object.entries(payoutConfig)) : new Map(), // Convert to Map
       };
+
     const campaign = await Campaign.create({
         name,
         description,
-        status: "Ready",  // Task campaigns are ready immediately
+        status: "Ready",
         totalAmount,
-        taskUrl,
-        triggerText, // Use triggerText
+        taskConfig, // Use the complete taskConfig object
         rewardAmount,
-        taskConfig:{
-            taskUrl,
-            triggerText,
-            taskType,
-        },
         campaignTemplate,
         company,
         publishPin: publishPin || generateRandomPin(),
         tags,
         user: userId,
         rewardConfig
-
     });
     campaign.merchantRegistrationLink = `${process.env.MERCHANT_REGISTRATION_URL}?campaign=${campaign.id}&company=${company}`;
     await campaign.save();
@@ -174,7 +156,7 @@ const generateTaskCampaign = async ({
     if (merchants && merchants.length > 0) {
         await Promise.all(
             merchants.map(async (merchant) => {
-                await generateMerchantObject({
+                await generateMerchantObject({ //Pass task URL
                     merchantName: merchant.name,
                     upiId: merchant.upiId,
                     merchantMobile: merchant.mobileNumber,
@@ -183,6 +165,8 @@ const generateTaskCampaign = async ({
                     campaignTemplate: campaign.campaignTemplate,
                     address: merchant.address,
                     campaignId: campaign.id,
+                    taskUrl: campaign.taskConfig.taskUrl, // Pass taskUrl here
+
                 });
             })
         );
@@ -191,19 +175,15 @@ const generateTaskCampaign = async ({
     return campaign;
 };
 
-/**
- * Generate a Product Campaign
- */
 const generateProductCampaign = async ({
     name,
     description,
-    taskType,
+    taskConfig, // Receive taskConfig
     noOfSamples,
     rewardAmount,
     campaignTemplate,
     company,
     userId,
-    triggerText, // Added
     tags,
     publishPin,
 }) => {
@@ -211,19 +191,19 @@ const generateProductCampaign = async ({
     const campaign = await Campaign.create({
         name,
         description,
-        status: "Pending", // Product campaigns start as pending
-        taskType,
+        status: "Pending",
+        taskConfig, // Use the complete taskConfig
         rewardAmount,
         noOfSamples,
-        triggerText, // Use triggerText
         campaignTemplate,
         company,
         publishPin: publishPin || generateRandomPin(),
         tags,
+        user: userId,
     });
 
     const codes = new Set();
-    const existingCodeDocs = await Code.find({}, { code: 1 }).lean(); // Use lean()
+    const existingCodeDocs = await Code.find({}, { code: 1 }).lean();
     existingCodeDocs.forEach((doc) => codes.add(doc.code));
 
     const prefix = "BOUNTY";
@@ -238,57 +218,46 @@ const generateProductCampaign = async ({
         }
     }
     const companyData = await Company.findById(company);
-
-    console.log("Generating These Codes in the Queue", generatedCodes);
     await qrCodeQueue.add("qrCodeGeneration", {
         companyId: company,
         campaignId: campaign.id,
         codes: generatedCodes,
-        triggerText: triggerText, // Pass triggerText
         campaignTemplate,
-        taskUrl: `https://wa.me/${companyData.phoneNumber}?text=`, // Dynamic URL
-        mobileNumber: "0000000000", // Placeholder (consider making this dynamic)
+        taskUrl: taskConfig.taskUrl, // Pass the campaign's taskUrl (now includes ?code=)
+        mobileNumber: "0000000000",
         userId: userId,
     });
 
     return campaign;
 };
 
-/**
- * Generate a Sample Giveaway Campaign
- */
 const generateSampleGiveAwayCampaign = async ({
     name,
     description,
-    triggerText, // Added
     campaignTemplate,
     company,
-    taskType,
+    taskConfig, // Receive taskConfig
     merchants,
-    taskUrl,
     tags,
     publishPin,
     userId
 }) => {
 
-    console.log(`Creating Campaign for ${campaignTemplate} ${company}`);
 
     const campaign = await Campaign.create({
-        taskType,
         name,
         description,
-        triggerText, // Use triggerText
-        taskUrl,
         status: "Ready",
         campaignTemplate,
         company,
+        taskConfig,  // Use the complete taskConfig
         publishPin: publishPin || generateRandomPin(),
         tags,
+        user: userId,
     });
     campaign.merchantRegistrationLink = `${process.env.MERCHANT_REGISTRATION_URL}?campaign=${campaign.id}&company=${company}`;
 
     await campaign.save();
-    console.log("Campaign Creation Successful");
 
     if (merchants && merchants.length > 0) {
         await Promise.all(
@@ -302,6 +271,7 @@ const generateSampleGiveAwayCampaign = async ({
                     campaignTemplate,
                     address: merchant.address,
                     campaignId: campaign.id,
+                    taskUrl: campaign.taskConfig.taskUrl, // Pass taskUrl
                 });
             })
         );
