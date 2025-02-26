@@ -14,9 +14,9 @@ class InvalidUPIError extends Error {
 async function initiateUPIPayout(upiId, amount, merchantName) {
   try {
       const response = await axios.post('https://api.cashfree.com/payout/transfers', {
-          merchant_details: {
-              merchant_name: merchantName,
-              merchant_instrument_details: {
+        beneficiary_details: {
+            beneficiary_name: merchantName,
+            beneficiary_instrument_details: {
                   vpa: upiId  // UPI ID of the merchant
               }
           },

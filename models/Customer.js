@@ -6,6 +6,7 @@ const CustomerSchema = new Schema(
   {
     full_name: { type: String },
     phone_number: { type: String, required: true },
+    merchant: { type: Schema.Types.ObjectId, ref: 'Merchant' },
     assignedTo: {type: String}, // Phone number of the customer
     email: {type: String},
     upiId: { type: String,default: null },
