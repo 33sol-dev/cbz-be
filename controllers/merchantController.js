@@ -41,7 +41,7 @@ exports.generateMerchantObject = async ({
       await merchantCode.save();
 
       merchant.qrLink = `${process.env.FRONTEND_URL}/video?campaign=${campaignId}&merchant=${merchant._id}&code=${codeString}`; // Include campaign, merchant, AND code
-      merchant.merchantCode = merchantCode.id;
+      merchant.merchantCode = codeString;
       await merchant.save();
       return merchant;
     } catch (err) {

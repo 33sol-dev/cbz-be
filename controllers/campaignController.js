@@ -5,6 +5,7 @@ const logger = require("../utils/logger");
 const Transaction = require("../models/Transaction");
 const Merchant = require("../models/Merchant");
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 const { parse } = require('json2csv'); // Add this import at the top
 
 
@@ -153,7 +154,7 @@ exports.getCampaignKPIs = async (req, res) => {
       const totalMerchants = await Merchant.countDocuments({ campaign: campaignId });
       const totalCustomers = await Customer.countDocuments({ 'last_campaign_details.campaign_id': campaignId });
       const totalMoneyGiven = await Transaction.aggregate([
-          { $match: { campaign: mongoose.Types.ObjectId(campaignId), status: "SUCCESS" } },
+          { $match: { campaign: new mongoose.Types.ObjectId(campaignId), status: "SUCCESS" } },
           { $group: { _id: null, total: { $sum: "$amount" } } }
       ]);
   
@@ -218,7 +219,7 @@ exports.getCampaignMerchantsCSV = async (req, res) => {
       return res.status(404).json({ message: "No merchants found for this campaign" });
     }
 
-    const fields = ['merchantName', 'upiId', 'merchantMobile', 'merchantEmail', 'address']; // Add other fields as needed
+    const fields = ['merchantName', 'upiId', 'merchantMobile', 'address','merchantCode','qrLink']; // Add other fields as needed
     const opts = { fields };
 
     try {
