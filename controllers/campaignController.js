@@ -86,7 +86,7 @@ exports.publishCampaign = async (req, res) => {
   }
 
   const campaignId = req.params.campaignId;
-  const { pin } = req.body; // The 4-digit PIN
+  const { pin,status } = req.body; // The 4-digit PIN
 
   try {
       const campaign = await Campaign.findById(campaignId);
@@ -105,7 +105,7 @@ exports.publishCampaign = async (req, res) => {
           return res.status(400).json({ message: "Invalid PIN." });
       }
 
-      campaign.status = "Active";
+      campaign.status = status;
       await campaign.save();
       res.json({ message: "Campaign published successfully", campaign });
   } catch (err) {
