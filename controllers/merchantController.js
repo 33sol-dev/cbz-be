@@ -107,10 +107,8 @@ exports.getMerchants = async (req, res) => {
     try {
         const campaignId = req.params.campaignId;
 
-        const merchants = await Merchant.find({ campaign: campaignId }).populate({
-            path: "merchantCode",
-            model: "Code" // Ensure this matches your schema reference
-          }).lean();
+        const merchants = await Merchant.find({ campaign: campaignId }).lean();
+
 
         res.status(200).json({ merchants });
     } catch (err) {

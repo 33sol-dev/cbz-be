@@ -219,7 +219,7 @@ exports.getCampaignMerchantsCSV = async (req, res) => {
       return res.status(404).json({ message: "No merchants found for this campaign" });
     }
 
-    const fields = ['merchantName', 'upiId', 'merchantMobile', 'address','merchantCode','qrLink']; // Add other fields as needed
+    const fields = ['_id','merchantName', 'upiId', 'merchantMobile', 'address','merchantCode','qrLink']; // Add other fields as needed
     const opts = { fields };
 
     try {
