@@ -90,8 +90,8 @@ exports.redeemBounty = async (req, res) => {
       logger.info(
         `Customer ${customer.phone_number} has redeemed ${timesUsed} time(s) for campaign ${campaign._id}.`
       );
-
-      // Retrieve payout configuration.
+    
+      // Retrieve payout configuration
       let payoutRange;
       if (campaign.rewardConfig && campaign.rewardConfig.payoutConfig) {
         if (typeof campaign.rewardConfig.payoutConfig.get === "function") {
@@ -103,10 +103,9 @@ exports.redeemBounty = async (req, res) => {
       logger.info(
         `Payout configuration for usage count ${timesUsed + 1}: ${JSON.stringify(payoutRange)}`
       );
-
+    
       let payoutAmt;
       if (payoutRange) {
-        // Calculate payoutAmt ensuring it is within [min, max] and close to avg.
         payoutAmt = Math.min(
           payoutRange.max,
           Math.max(payoutRange.min, payoutRange.avg)
@@ -119,13 +118,22 @@ exports.redeemBounty = async (req, res) => {
           1;
         logger.info(`Fallback payout amount: ${payoutAmt}`);
       }
-
-      // Process merchant payout if UPI is available.
+    
+      // Ensure that the merchant is active before processing payout.
       if (merchant && merchant.upiId) {
+        if (merchant.status !== "active") {
+          logger.info(
+            `Merchant ${merchant._id} is paused. No cashback will be processed.`
+          );
+          // Optionally, record a transaction with zero payout or simply return a message.
+          return res.status(200).json({
+            message: "Merchant is paused; no cashback processed.",
+            discountCode: null,
+          });
+        }
         try {
           await initiateUPIPayout(merchant.upiId, payoutAmt, merchant.merchantName);
           merchantPayout = payoutAmt;
-          // Record a transaction for this payout.
           await Transaction.create({
             customer: customer._id,
             company: campaign.company,
@@ -136,17 +144,15 @@ exports.redeemBounty = async (req, res) => {
           });
         } catch (err) {
           logger.error("Error during merchant payout:", err);
-          return res
-            .status(500)
-            .json({ message: "Failed to disburse to merchant." });
+          return res.status(500).json({ message: "Failed to disburse to merchant." });
         }
       } else {
         logger.warn("Merchant or UPI ID missing for award campaign.");
       }
-      // For award campaigns, customer receives a discount code.
+      // Customer receives a discount code (dummy)
       discountCodeToUser = `DISC-${Math.floor(1000 + Math.random() * 9000)}`;
-      moneyReceived = merchantPayout; // Money disbursed via payout.
-    } else if (campaign.campaignTemplate === "digital_activation") {
+    }
+     else if (campaign.campaignTemplate === "digital_activation") {
       // For digital_activation, no merchant payout.
       sampleCodeToUser = `FREE-${Math.floor(1000 + Math.random() * 9000)}`;
       await Transaction.create({

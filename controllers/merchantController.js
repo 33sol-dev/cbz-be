@@ -143,6 +143,8 @@ exports.getMerchant = async (req, res) => {
 /**
  * Update a merchant's details
  */
+// controllers/merchantController.js
+
 exports.updateMerchant = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -158,8 +160,9 @@ exports.updateMerchant = async (req, res) => {
             campaign,
             company,
             address,
+            status  // new field to update status (e.g., "active" or "paused")
         } = req.body;
-
+  
         const merchant = await Merchant.findByIdAndUpdate(
             merchantId,
             {
@@ -170,24 +173,26 @@ exports.updateMerchant = async (req, res) => {
                 campaign,
                 company,
                 address,
+                status, // update the status field as well
             },
-            { new: true, runValidators: true } // Added runValidators
+            { new: true, runValidators: true }
         );
-
+  
         if (!merchant) {
             return res.status(404).json({ message: "Merchant not found" });
         }
-
-        // Regenerate QR Link after update (consider moving this to a post-save hook)
+  
+        // Regenerate QR Link after update (if needed)
         merchant.qrLink = `${constants.taskUrl}?campaign=${merchant.campaign}&merchant=${merchant._id}`;
         await merchant.save();
-
+  
         res.status(200).json({ message: "Merchant updated successfully", merchant });
     } catch (err) {
         logger.error("Error in updateMerchant:", err);
         res.status(500).json({ message: "Server error", error: err.toString() });
     }
-};
+  };
+  
 
 /**
  * Delete a merchant (Soft Delete)

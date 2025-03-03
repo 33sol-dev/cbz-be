@@ -6,7 +6,7 @@ const MerchantSchema = new mongoose.Schema({
   merchantMobile: String,
   merchantEmail: String,
   upiId: String,
-  merchantCode:String,
+  merchantCode: String,
   campaign: {
     type: mongoose.Schema.Types.ObjectId, // Corrected type
     ref: "Campaign",
@@ -17,6 +17,12 @@ const MerchantSchema = new mongoose.Schema({
   },
   address: String,
   qrLink: String,
+  // New field for pausing/resuming the merchant
+  status: {
+    type: String,
+    enum: ["active", "paused"],
+    default: "active",
+  },
 });
 
 // Add indexes
@@ -24,7 +30,7 @@ MerchantSchema.index({ campaign: 1 });
 MerchantSchema.index({ company: 1 });
 MerchantSchema.index({ merchantMobile: 1 });
 MerchantSchema.index({ upiId: 1 });
-MerchantSchema.index({merchantCode: 1})
+MerchantSchema.index({ merchantCode: 1 });
 
 module.exports =
   mongoose.models["Merchant"] || mongoose.model("Merchant", MerchantSchema);
