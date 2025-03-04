@@ -129,7 +129,7 @@ exports.getMerchant = async (req, res) => {
     try {
         const merchantId = req.params.merchantId;
 
-        const merchant = await Merchant.findById(merchantId).populate({path: "merchantCode",model: "Code"}).lean(); //Added Lean
+        const merchant = await Merchant.findById(merchantId).lean();
         if (!merchant) {
             return res.status(404).json({ message: "Merchant not found" });
         }
@@ -146,53 +146,53 @@ exports.getMerchant = async (req, res) => {
 // controllers/merchantController.js
 
 exports.updateMerchant = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-        const merchantId = req.params.merchantId;
-        const {
-            merchantName,
-            upiId,
-            merchantMobile,
-            merchantEmail,
-            campaign,
-            company,
-            address,
-            status  // new field to update status (e.g., "active" or "paused")
-        } = req.body;
-  
-        const merchant = await Merchant.findByIdAndUpdate(
-            merchantId,
-            {
-                merchantName,
-                upiId,
-                merchantMobile,
-                merchantEmail,
-                campaign,
-                company,
-                address,
-                status, // update the status field as well
-            },
-            { new: true, runValidators: true }
-        );
-  
-        if (!merchant) {
-            return res.status(404).json({ message: "Merchant not found" });
-        }
-  
-        // Regenerate QR Link after update (if needed)
-        merchant.qrLink = `${constants.taskUrl}?campaign=${merchant.campaign}&merchant=${merchant._id}`;
-        await merchant.save();
-  
-        res.status(200).json({ message: "Merchant updated successfully", merchant });
-    } catch (err) {
-        logger.error("Error in updateMerchant:", err);
-        res.status(500).json({ message: "Server error", error: err.toString() });
-    }
-  };
-  
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+      const merchantId = req.params.merchantId;
+      const {
+          merchantName,
+          upiId,
+          merchantMobile,
+          merchantEmail,
+          campaign,
+          company,
+          address,
+          status  // new field to update status (e.g., "active" or "paused")
+      } = req.body;
+
+      const merchant = await Merchant.findByIdAndUpdate(
+          merchantId,
+          {
+              merchantName,
+              upiId,
+              merchantMobile,
+              merchantEmail,
+              campaign,
+              company,
+              address,
+              status, // update the status field as well
+          },
+          { new: true, runValidators: true }
+      );
+
+      if (!merchant) {
+          return res.status(404).json({ message: "Merchant not found" });
+      }
+
+      // Regenerate QR Link after update (if needed)
+      merchant.qrLink = `${constants.taskUrl}?campaign=${merchant.campaign}&merchant=${merchant._id}`;
+      await merchant.save();
+
+      res.status(200).json({ message: "Merchant updated successfully", merchant });
+  } catch (err) {
+      logger.error("Error in updateMerchant:", err);
+      res.status(500).json({ message: "Server error", error: err.toString() });
+  }
+};
+
 
 /**
  * Delete a merchant (Soft Delete)
