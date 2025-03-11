@@ -240,35 +240,56 @@ exports.getCampaignMerchantsCSV = async (req, res) => {
 
 
 exports.getCampaignCustomersCSV = async (req, res) => {
-    const { campaignId } = req.params;
-  
-    try {
-      const campaign = await Campaign.findById(campaignId);
-      if (!campaign) {
-        return res.status(404).json({ message: "Campaign not found" });
-      }
-  
-        const customers = await Customer.find({ 'last_campaign_details.campaign_id': campaignId }).lean();
-  
-      if (customers.length === 0) {
-        return res.status(404).json({ message: "No customers found for this campaign" });
-      }
-  
-      const fields = ['full_name', 'phone_number', 'upiId', 'email', 'address']; // Add or remove fields
-      const opts = { fields };
-  
-      try {
-        const csv = parse(customers, opts);
-        res.setHeader('Content-disposition', `attachment; filename=customers_${campaignId}.csv`);
-        res.set('Content-Type', 'text/csv');
-        res.status(200).send(csv);
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Error generating CSV", error: err.toString() });
-      }
-  
-    } catch (err) {
-      logger.error("Error in getCampaignCustomersCSV:", err);
-      res.status(500).json({ message: "Server Error", error: err.toString() });
+  const { campaignId } = req.params;
+
+  try {
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
     }
-  };
+
+    // 1) Query customers with populate
+    const customers = await Customer.find({ 
+      'last_campaign_details.campaign_id': campaignId 
+    })
+      .populate('merchant') // populate merchant data
+      .lean();
+
+    if (customers.length === 0) {
+      return res.status(404).json({ message: "No customers found for this campaign" });
+    }
+
+    // 2) Transform if you want flatter CSV
+    const transformed = customers.map(c => ({
+      full_name: c.full_name,
+      phone_number: c.phone_number,
+      upiId: c.upiId,
+      email: c.email,
+      address: c.address,
+      merchantName: c.merchant?.merchantName || "",
+      merchantCode: c.merchant?.merchantCode || "",
+    }));
+
+    // 3) Prepare CSV fields
+    const fields = [
+      'full_name',
+      'phone_number',
+      'upiId',
+      'email',
+      'address',
+      'merchantName',
+      'merchantCode'
+    ];
+    const opts = { fields };
+
+    // 4) Generate and send CSV
+    const csv = parse(transformed, opts);
+    res.setHeader('Content-disposition', `attachment; filename=customers_${campaignId}.csv`);
+    res.set('Content-Type', 'text/csv');
+    res.status(200).send(csv);
+
+  } catch (err) {
+    logger.error("Error in getCampaignCustomersCSV:", err);
+    res.status(500).json({ message: "Server Error", error: err.toString() });
+  }
+};
