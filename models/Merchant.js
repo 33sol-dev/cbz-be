@@ -1,6 +1,7 @@
 // models/Merchant.js
 const mongoose = require("mongoose");
 
+// models/Merchant.js
 const MerchantSchema = new mongoose.Schema({
   merchantName: String,
   merchantMobile: String,
@@ -8,22 +9,29 @@ const MerchantSchema = new mongoose.Schema({
   upiId: String,
   merchantCode: String,
   campaign: {
-    type: mongoose.Schema.Types.ObjectId, // Corrected type
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Campaign",
   },
   company: {
-    type: mongoose.Schema.Types.ObjectId, // Corrected type
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Company",
   },
   address: String,
   qrLink: String,
-  // New field for pausing/resuming the merchant
   status: {
     type: String,
     enum: ["active", "paused"],
     default: "active",
   },
+  // New field to indicate if this is a dummy merchant
+  isDummy: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+// ...indexes and export
+
 
 // Add indexes
 MerchantSchema.index({ campaign: 1 });

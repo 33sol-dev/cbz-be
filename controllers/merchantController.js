@@ -17,10 +17,22 @@ exports.generateMerchantObject = async ({
     address,
     campaignId,
     campaignTemplate,
-    taskUrl, // Receive taskUrl
+    taskUrl, // Receive taskUrl if needed
+    isDummy,   // New parameter to indicate dummy creation
   }) => {
     try {
       const codeString = await generateUniqueCode();
+
+      // If creating a dummy merchant, assign default values where needed
+      if (isDummy) {
+        merchantName = merchantName || "Dummy Merchant";
+        upiId = upiId || ""; // or a default dummy UPI value if applicable
+        merchantMobile = merchantMobile || "";
+        merchantEmail = merchantEmail || "";
+        address = address || "";
+      }
+
+      // Create the merchant document with the isDummy flag
       let merchant = await Merchant.create({
         merchantName,
         upiId,
@@ -29,27 +41,30 @@ exports.generateMerchantObject = async ({
         campaign: campaignId,
         company,
         address,
+        isDummy, // set dummy flag
       });
 
       const merchantCode = await Code.create({
         code: codeString,
-        company:company,
+        company: company,
         campaign: campaignId,
-        campaignTemplate:campaignTemplate,
+        campaignTemplate: campaignTemplate,
         merchant: merchant._id,
       });
       await merchantCode.save();
 
-      merchant.qrLink = `${process.env.FRONTEND_URL}/video?campaign=${campaignId}&merchant=${merchant._id}&code=${codeString}`; // Include campaign, merchant, AND code
+      merchant.qrLink = `${process.env.FRONTEND_URL}/video?campaign=${campaignId}&merchant=${merchant._id}&code=${codeString}`;
       merchant.merchantCode = codeString;
       await merchant.save();
+
       return merchant;
     } catch (err) {
       logger.error("Error generating merchant object");
-      console.log(err)
+      console.log(err);
       throw new Error("Failed to generate merchant object");
     }
   };
+
 
 /**
  * Add a new merchant to a campaign (Allows same merchant in multiple campaigns)
@@ -69,14 +84,16 @@ exports.addMerchant = async (req, res) => {
             company,
             address,
             campaignId,
+            isDummy, // read the new flag from the request body
         } = req.body;
 
-        // Input validation (already handled by express-validator)
+        // Validate campaign existence as before
         const campaign = await Campaign.findById(campaignId);
         if (!campaign) {
             return res.status(404).json({ message: "Campaign not found" });
         }
 
+        // Pass the isDummy flag to generateMerchantObject
         const merchant = await exports.generateMerchantObject({
             merchantName,
             upiId,
@@ -86,6 +103,7 @@ exports.addMerchant = async (req, res) => {
             campaignTemplate: campaign.campaignTemplate,
             address,
             campaignId,
+            isDummy, // new parameter
         });
         res.status(201).json({ message: "Merchant added successfully", merchant });
     } catch (err) {
@@ -93,6 +111,7 @@ exports.addMerchant = async (req, res) => {
         res.status(500).json({ message: "Server error", error: err.toString() });
     }
 };
+
 
 /**
  * Get all merchants of a campaign
@@ -146,52 +165,58 @@ exports.getMerchant = async (req, res) => {
 // controllers/merchantController.js
 
 exports.updateMerchant = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-  }
-  try {
-      const merchantId = req.params.merchantId;
-      const {
-          merchantName,
-          upiId,
-          merchantMobile,
-          merchantEmail,
-          campaign,
-          company,
-          address,
-          status  // new field to update status (e.g., "active" or "paused")
-      } = req.body;
-
-      const merchant = await Merchant.findByIdAndUpdate(
-          merchantId,
-          {
-              merchantName,
-              upiId,
-              merchantMobile,
-              merchantEmail,
-              campaign,
-              company,
-              address,
-              status, // update the status field as well
-          },
-          { new: true, runValidators: true }
-      );
-
-      if (!merchant) {
-          return res.status(404).json({ message: "Merchant not found" });
-      }
-
-      // Regenerate QR Link after update (if needed)
-      merchant.qrLink = `${constants.taskUrl}?campaign=${merchant.campaign}&merchant=${merchant._id}`;
-      await merchant.save();
-
-      res.status(200).json({ message: "Merchant updated successfully", merchant });
-  } catch (err) {
-      logger.error("Error in updateMerchant:", err);
-      res.status(500).json({ message: "Server error", error: err.toString() });
-  }
-};
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+        const merchantId = req.params.merchantId;
+        const {
+            merchantName,
+            upiId,
+            merchantMobile,
+            merchantEmail,
+            campaign,
+            company,
+            address,
+            status  // new field to update status (e.g., "active" or "paused")
+        } = req.body;
+        
+        // Find the merchant first
+        let merchant = await Merchant.findById(merchantId);
+        if (!merchant) {
+            return res.status(404).json({ message: "Merchant not found" });
+        }
+  
+        // Update each field explicitly if provided, else keep existing value
+        merchant.merchantName = merchantName !== undefined ? merchantName : merchant.merchantName;
+        merchant.upiId = upiId !== undefined ? upiId : merchant.upiId;
+        merchant.merchantMobile = merchantMobile !== undefined ? merchantMobile : merchant.merchantMobile;
+        merchant.merchantEmail = merchantEmail !== undefined ? merchantEmail : merchant.merchantEmail;
+        merchant.campaign = campaign !== undefined ? campaign : merchant.campaign;
+        merchant.company = company !== undefined ? company : merchant.company;
+        merchant.address = address !== undefined ? address : merchant.address;
+        merchant.status = status !== undefined ? status : merchant.status;
+  
+        // If the merchant was created as a dummy and now has valid details, unset the dummy flag.
+        if (merchant.isDummy && merchantName && upiId && merchantMobile) {
+            merchant.isDummy = false;
+        }
+  
+        // Regenerate QR Link after update (if needed)
+        merchant.qrLink = `${constants.taskUrl}?campaign=${merchant.campaign}&merchant=${merchant._id}`;
+        
+        // Save updated document
+        await merchant.save();
+  
+        res.status(200).json({ message: "Merchant updated successfully", merchant });
+    } catch (err) {
+        logger.error("Error in updateMerchant:", err);
+        res.status(500).json({ message: "Server error", error: err.toString() });
+    }
+  };
+  
+  
 
 
 /**

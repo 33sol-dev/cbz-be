@@ -5,11 +5,21 @@ const merchantController = require("../controllers/merchantController");
 const { body, param } = require('express-validator');
 
 router.post("/create", [
-    body('merchantName').trim().notEmpty().withMessage('Merchant name is required'),
-    body('upiId').trim().notEmpty().withMessage('UPI ID is required'),
-    body('merchantMobile').trim().notEmpty().withMessage('Mobile number is required'),
-    // Add other field validations
-], merchantController.addMerchant);
+    // Optional boolean flag indicating dummy merchant creation
+    body('isDummy').optional().isBoolean().withMessage('isDummy must be a boolean'),
+    // Only validate required fields if not creating a dummy
+    body('merchantName')
+      .if((value, { req }) => !req.body.isDummy)
+      .trim().notEmpty().withMessage('Merchant name is required'),
+    body('upiId')
+      .if((value, { req }) => !req.body.isDummy)
+      .trim().notEmpty().withMessage('UPI ID is required'),
+    body('merchantMobile')
+      .if((value, { req }) => !req.body.isDummy)
+      .trim().notEmpty().withMessage('Mobile number is required'),
+    // Add other field validations as needed
+  ], merchantController.addMerchant);
+  
 
 router.get("/:campaignId", [
     param('campaignId').isMongoId().withMessage('Invalid campaign ID')
