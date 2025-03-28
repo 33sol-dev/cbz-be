@@ -43,6 +43,9 @@ exports.redeemBounty = async (req, res) => {
     // 4) Get the campaign and merchant from the code record
     const campaign = codeDoc.campaign;
     const merchant = codeDoc.merchant;
+    if (merchant && merchant.campaign.toString() !== campaign._id.toString()) {
+           return res.status(400).json({ message: "Merchant does not belong to this campaign." });
+          }
 
     // Ensure campaign is active
     if (campaign.status !== "Active") {

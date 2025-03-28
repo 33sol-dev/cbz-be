@@ -261,24 +261,24 @@ exports.getCampaignCustomersCSV = async (req, res) => {
 
     // 2) Transform if you want flatter CSV
     const transformed = customers.map(c => ({
-      full_name: c.full_name,
       phone_number: c.phone_number,
       upiId: c.upiId,
       email: c.email,
       address: c.address,
       merchantName: c.merchant?.merchantName || "",
       merchantCode: c.merchant?.merchantCode || "",
+      createdAt : new Date(c.createdAt).toLocaleString()
     }));
 
     // 3) Prepare CSV fields
     const fields = [
-      'full_name',
       'phone_number',
       'upiId',
       'email',
       'address',
       'merchantName',
-      'merchantCode'
+      'merchantCode',
+      'createdAt'
     ];
     const opts = { fields };
 
