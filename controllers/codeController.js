@@ -1,221 +1,232 @@
 // controllers/codeController.js
-const Merchant = require("../models/Merchant");
-const Campaign = require("../models/Campaign");
-const Code = require("../models/Code");
-const Customer = require("../models/Customer");
-const Transaction = require("../models/Transaction");
-const logger = require("../utils/logger");
+const Merchant      = require("../models/Merchant");
+const Campaign      = require("../models/Campaign");
+const Code          = require("../models/Code");
+const Customer      = require("../models/Customer");
+const Transaction   = require("../models/Transaction");
+const logger        = require("../utils/logger");
 const { initiateUPIPayout } = require("../utils/paymentService");
 const { validationResult } = require("express-validator");
 
+/* ------------------------------------------------------------------ */
+/*  Redeem Bounty                                                     */
+/* ------------------------------------------------------------------ */
+
 exports.redeemBounty = async (req, res) => {
   try {
-    // 1) Validate request body
+    /* -------------------------------------------------------------- */
+    /* 1) Validate body                                               */
+    /* -------------------------------------------------------------- */
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
     const { phoneNumber } = req.body;
-    let rawText = req.body.code; // Contains trigger text and bounty code
+    let rawText = req.body.code;            // “triggerText-BOUNTYxxxx”
 
     if (!phoneNumber || !rawText) {
-      return res
-        .status(400)
-        .json({ message: "phoneNumber and code are required." });
+      return res.status(400).json({ message: "phoneNumber and code are required." });
     }
 
-    // 2) Extract bounty code from rawText.
-    // Assumes format: "triggerText-BOUNTY1234" (bounty code is after the last hyphen)
-    let bountyCode = rawText;
-    if (rawText.includes("-")) {
-      bountyCode = rawText.split("-").pop().trim();
-    }
-    // bountyCode now should be something like "BOUNTY1234"
+    /* -------------------------------------------------------------- */
+    /* 2) Extract bounty code                                         */
+    /* -------------------------------------------------------------- */
+    let bountyCode = rawText.includes("-")
+      ? rawText.split("-").pop().trim()
+      : rawText;                            // e.g. “BOUNTY123456”
 
-    // 3) Look up the bounty code record (reusable)
+    /* -------------------------------------------------------------- */
+    /* 3) Load Code, Campaign, Merchant                               */
+    /* -------------------------------------------------------------- */
     const codeDoc = await Code.findOne({ code: bountyCode })
       .populate("campaign")
       .populate("merchant");
+
     if (!codeDoc) {
       return res.status(400).json({ message: "Invalid bounty code." });
     }
 
-    // 4) Get the campaign and merchant from the code record
     const campaign = codeDoc.campaign;
-    const merchant = codeDoc.merchant;
-    if (merchant && merchant.campaign.toString() !== campaign._id.toString()) {
-           return res.status(400).json({ message: "Merchant does not belong to this campaign." });
-          }
+    const merchant = codeDoc.merchant;      // may be undefined
 
-    // Ensure campaign is active
+    if (
+      merchant &&
+      merchant.campaign.toString() !== campaign._id.toString()
+    ) {
+      return res.status(400).json({ message: "Merchant does not belong to this campaign." });
+    }
+
     if (campaign.status !== "Active") {
-      return res
-        .status(400)
-        .json({ message: "Campaign is not active. Cannot redeem." });
+      return res.status(400).json({ message: "Campaign is not active. Cannot redeem." });
     }
 
-    // 5) Find or create the customer by phone number.
-    // Also, if creating a new customer, record the merchant for tracking.
+    /* -------------------------------------------------------------- */
+    /* 4) Find-or-create Customer & ENSURE proper merchant mapping    */
+    /* -------------------------------------------------------------- */
+    const thisMerchantId = merchant ? merchant._id : undefined;
+
     let customer = await Customer.findOne({ phone_number: phoneNumber });
+
     if (!customer) {
+      // first-time customer – bind to this merchant
       customer = await Customer.create({
-        phone_number: phoneNumber,
-        company: campaign.company,
-        merchant: merchant ? merchant._id : undefined,
+        phone_number : phoneNumber,
+        company      : campaign.company,
+        merchant     : thisMerchantId,
       });
+    } else {
+      // existing customer – overwrite merchant ONLY if different
+      if (
+        String(customer.merchant || "") !== String(thisMerchantId || "")
+      ) {
+        customer.merchant = thisMerchantId;
+      }
     }
 
-    // 6) Check if the customer has already participated in this campaign.
+    /* -------------------------------------------------------------- */
+    /* 5) Reject if already got reward in this campaign               */
+    /* -------------------------------------------------------------- */
     const existingTxn = await Transaction.findOne({
-      customer: customer._id,
-      campaign: campaign._id,
-      status: "SUCCESS",
+      customer : customer._id,
+      campaign : campaign._id,
+      status   : "SUCCESS",
     });
+
     if (existingTxn) {
-      return res
-        .status(200)
-        .json({ message: "Customer already participated in this campaign." });
+      return res.status(200).json({ message: "Customer already participated in this campaign." });
     }
 
-    // 7) Decide reward based on campaignTemplate
-    let merchantPayout = 0;
+    /* -------------------------------------------------------------- */
+    /* 6) Templated reward logic                                      */
+    /* -------------------------------------------------------------- */
+    let merchantPayout     = 0;
     let discountCodeToUser = null;
-    let sampleCodeToUser = null;
-    let moneyReceived = 0;
+    let sampleCodeToUser   = null;
+    let moneyReceived      = 0;
 
+    /* ----------  AWARD campaign (merchant cashback)  -------------- */
     if (campaign.campaignTemplate === "award") {
-      // Calculate payout based on previous successful transactions
       const timesUsed = await Transaction.countDocuments({
-        customer: customer._id,
-        campaign: campaign._id,
-        status: "SUCCESS",
+        customer : customer._id,
+        campaign : campaign._id,
+        status   : "SUCCESS",
       });
-      logger.info(
-        `Customer ${customer.phone_number} has redeemed ${timesUsed} time(s) for campaign ${campaign._id}.`
-      );
-    
-      // Retrieve payout configuration
+
+      /* payoutConfig lookup */
       let payoutRange;
       if (campaign.rewardConfig && campaign.rewardConfig.payoutConfig) {
-        if (typeof campaign.rewardConfig.payoutConfig.get === "function") {
-          payoutRange = campaign.rewardConfig.payoutConfig.get(String(timesUsed + 1));
-        } else {
-          payoutRange = campaign.rewardConfig.payoutConfig[String(timesUsed + 1)];
-        }
+        payoutRange = typeof campaign.rewardConfig.payoutConfig.get === "function"
+          ? campaign.rewardConfig.payoutConfig.get(String(timesUsed + 1))
+          : campaign.rewardConfig.payoutConfig[String(timesUsed + 1)];
       }
-      logger.info(
-        `Payout configuration for usage count ${timesUsed + 1}: ${JSON.stringify(payoutRange)}`
-      );
-    
-      let payoutAmt;
-      if (payoutRange) {
-        payoutAmt = Math.min(
-          payoutRange.max,
-          Math.max(payoutRange.min, payoutRange.avg)
-        );
-        logger.info(`Calculated payout amount: ${payoutAmt}`);
-      } else {
-        payoutAmt =
-          campaign.rewardConfig.bounty_cashback_config?.avg_amount ||
-          campaign.rewardConfig.rewardAmount ||
-          1;
-        logger.info(`Fallback payout amount: ${payoutAmt}`);
-      }
-    
-      // Ensure that the merchant is active before processing payout.
+
+      const payoutAmt = payoutRange
+        ? Math.min(payoutRange.max, Math.max(payoutRange.min, payoutRange.avg))
+        : (
+            campaign.rewardConfig.bounty_cashback_config?.avg_amount ||
+            campaign.rewardConfig.rewardAmount                    ||
+            1
+          );
+
+      /* Skip payout if merchant paused */
       if (merchant && merchant.upiId) {
         if (merchant.status !== "active") {
-          logger.info(
-            `Merchant ${merchant._id} is paused. No cashback will be processed.`
-          );
-          // Optionally, record a transaction with zero payout or simply return a message.
           return res.status(200).json({
             message: "Merchant is paused; no cashback processed.",
             discountCode: null,
           });
         }
+
         try {
           await initiateUPIPayout(merchant.upiId, payoutAmt, merchant.merchantName);
           merchantPayout = payoutAmt;
+
           await Transaction.create({
-            customer: customer._id,
-            company: campaign.company,
-            campaign: campaign._id,
-            code: codeDoc._id,
-            amount: payoutAmt,
-            status: "SUCCESS",
+            customer : customer._id,
+            company  : campaign.company,
+            campaign : campaign._id,
+            code     : codeDoc._id,
+            amount   : payoutAmt,
+            status   : "SUCCESS",
           });
         } catch (err) {
           logger.error("Error during merchant payout:", err);
           return res.status(500).json({ message: "Failed to disburse to merchant." });
         }
-      } else {
-        logger.warn("Merchant or UPI ID missing for award campaign.");
       }
-      // Customer receives a discount code (dummy)
+
       discountCodeToUser = `DISC-${Math.floor(1000 + Math.random() * 9000)}`;
     }
-     else if (campaign.campaignTemplate === "digital_activation") {
-      // For digital_activation, no merchant payout.
+
+    /* ----------  DIGITAL ACTIVATION (sample)  --------------------- */
+    else if (campaign.campaignTemplate === "digital_activation") {
       sampleCodeToUser = `FREE-${Math.floor(1000 + Math.random() * 9000)}`;
+
       await Transaction.create({
-        customer: customer._id,
-        company: campaign.company,
-        campaign: campaign._id,
-        code: codeDoc._id,
-        amount: 0,
-        status: "SUCCESS",
+        customer : customer._id,
+        company  : campaign.company,
+        campaign : campaign._id,
+        code     : codeDoc._id,
+        amount   : 0,
+        status   : "SUCCESS",
       });
+
       moneyReceived = 0;
-    } else if (campaign.campaignTemplate === "product") {
-      return res
-        .status(400)
-        .json({ message: "Use the product flow or adapt accordingly." });
-    } else {
-      return res
-        .status(400)
-        .json({ message: "Invalid or unsupported campaign template." });
     }
 
-    // 8) Update the customer's last_campaign_details so we can later fetch customers for a campaign.
+    /* ----------  PRODUCT (not handled here)  ---------------------- */
+    else if (campaign.campaignTemplate === "product") {
+      return res.status(400).json({ message: "Use the product flow or adapt accordingly." });
+    }
+
+    else {
+      return res.status(400).json({ message: "Invalid or unsupported campaign template." });
+    }
+
+    /* -------------------------------------------------------------- */
+    /* 7) Update customer.last_campaign_details                       */
+    /* -------------------------------------------------------------- */
     customer.last_campaign_details = {
-      campaign_id: campaign._id,
-      details_user_shared: {}, // Optionally add any shared details.
-      money_they_received: moneyReceived,
+      campaign_id         : campaign._id,
+      merchant_id         : thisMerchantId,          // ← helpful for CSV & UI
+      details_user_shared : {},
+      money_they_received : moneyReceived,
     };
+
     await customer.save();
 
-    // 9) Return a consolidated response.
+    /* -------------------------------------------------------------- */
+    /* 8) Respond                                                     */
+    /* -------------------------------------------------------------- */
     return res.json({
-      message: "Redemption success!",
+      message       : "Redemption success!",
       merchantPayout,
-      discountCode: discountCodeToUser,
-      sampleCode: sampleCodeToUser,
+      discountCode  : discountCodeToUser,
+      sampleCode    : sampleCodeToUser,
     });
+
   } catch (error) {
     logger.error("Error in redeemBounty:", error);
-    return res
-      .status(500)
-      .json({ message: "Server error", error: error.toString() });
+    return res.status(500).json({ message: "Server error", error: error.toString() });
   }
 };
 
-
-
-
-
+/* ------------------------------------------------------------------ */
+/*  Get all QR / Code docs for a campaign                             */
+/* ------------------------------------------------------------------ */
 exports.getQrByCampaign = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-    try {
-        const { campaignId } = req.body;
-        const codes = await Code.find({ campaign: campaignId }).lean();
-        res.json({ codes });
-    } catch (err) {
-        logger.error("Error in getQrByCampaign:", err);
-        res.status(500).json({ message: "Server error", error: err.toString() });
-    }
+  try {
+    const { campaignId } = req.body;
+    const codes = await Code.find({ campaign: campaignId }).lean();
+    res.json({ codes });
+  } catch (err) {
+    logger.error("Error in getQrByCampaign:", err);
+    res.status(500).json({ message: "Server error", error: err.toString() });
+  }
 };
